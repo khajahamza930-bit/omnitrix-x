@@ -1,16 +1,1339 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+/* =========================================
+   OMNITRIX X — COMPLETE GLOBAL STYLESHEET
+   ========================================= */
+
+:root {
+  font-family: 'Rajdhani', sans-serif;
+  color: #e8f5eb;
+  background: #050805;
+  --green: #a1ff48;
+  --green-bright: #39ff14;
+  --metal: #62695e;
+  --alien-color: #a1ff48;
+  --line: rgba(161, 255, 72, 0.2);
+  --panel: rgba(8, 14, 9, 0.96);
+}
+
 * {
   box-sizing: border-box;
 }
 
-html,
-body,
-#root {
-  margin: 0;
-  min-height: 100%;
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
 }
 
 body {
+  margin: 0;
   min-width: 320px;
-  background: #06110c;
+  min-height: 100vh;
+  background: #050805;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+::selection {
+  color: #081006;
+  background: var(--green);
+}
+
+/* =========================================
+   BACKGROUND
+   ========================================= */
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 0 5%;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(56, 103, 29, 0.22), transparent 43%),
+    radial-gradient(ellipse at 50% 100%, rgba(29, 71, 20, 0.13), transparent 45%),
+    linear-gradient(135deg, #070b07, #030503 65%, #08100b);
+}
+
+.background-grid {
+  position: fixed;
+  z-index: -2;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.09;
+  background-image:
+    linear-gradient(rgba(161, 255, 72, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(161, 255, 72, 0.12) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(to bottom, black, transparent 95%);
+}
+
+.background-glow {
+  position: fixed;
+  z-index: -1;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.glow-one {
+  top: 15%;
+  left: -160px;
+  background: var(--green);
+}
+
+.glow-two {
+  right: -160px;
+  bottom: 10%;
+  background: #39ff79;
+}
+
+/* =========================================
+   HEADER
+   ========================================= */
+
+.topbar,
+.dashboard {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1500px;
+  margin: auto;
+}
+
+.topbar {
+  min-height: 95px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+.brand-symbol {
+  width: 47px;
+  height: 47px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: var(--green);
+  border: 2px solid #66735b;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #182516, #0b1309 68%);
+  box-shadow:
+    0 0 18px #a1ff481c,
+    inset 0 0 12px #a1ff481c,
+    0 0 0 4px #080b07,
+    0 0 0 5px #30382a;
+}
+
+.brand h1 {
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(19px, 2.2vw, 27px);
+  letter-spacing: 2px;
+}
+
+.brand h1 span {
+  color: var(--green);
+  text-shadow: 0 0 15px #a1ff4840;
+}
+
+.brand p {
+  margin: 5px 0 0;
+  color: #82917e;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  color: #a9b8a5;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.status-dot,
+.mini-pulse {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  display: inline-block;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 9px var(--green);
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+.status-dot.offline {
+  background: #ff5050;
+  box-shadow: 0 0 9px #ff5050;
+  animation: none;
+}
+
+.version {
+  padding-left: 12px;
+  margin-left: 10px;
+  border-left: 1px solid var(--line);
+  color: #72816e;
+}
+
+/* =========================================
+   DASHBOARD AND PANELS
+   ========================================= */
+
+.dashboard {
+  padding-top: 30px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 7px;
+  color: var(--green);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(22px, 3vw, 32px);
+}
+
+.section-heading h2 span {
+  color: var(--green);
+  text-shadow: 0 0 18px #a1ff4830;
+}
+
+.reset-button,
+.power-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 1px solid #34462b;
+  background: linear-gradient(145deg, #11180f, #080c07);
+  color: #aab6a5;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  transition: border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.reset-button:hover,
+.power-button:hover {
+  color: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 16px #a1ff481a;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.85fr) minmax(300px, 1.25fr) minmax(235px, 0.95fr);
+  align-items: stretch;
+  gap: 22px;
+}
+
+.panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(145deg, rgba(16, 25, 14, 0.55), transparent 45%),
+    var(--panel);
+  box-shadow: 0 12px 35px #0005, inset 0 1px #ffffff05;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  color: #b7c4b2;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.panel-heading svg,
+.count {
+  color: var(--green);
+}
+
+/* =========================================
+   ALIEN ROSTER
+   ========================================= */
+
+.roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px;
+}
+
+.roster-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #e0e9dc;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.roster-item:hover {
+  background: #ffffff08;
+  border-color: #ffffff17;
+  transform: translateX(2px);
+}
+
+.roster-item.active {
+  border-color: color-mix(in srgb, var(--item-color) 65%, transparent);
+  background: color-mix(in srgb, var(--item-color) 10%, transparent);
+  box-shadow: inset 3px 0 color-mix(in srgb, var(--item-color) 75%, transparent);
+}
+
+.roster-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--item-color) 60%, transparent);
+  background: #091008;
+  color: var(--item-color);
+  font-size: 23px;
+}
+
+.roster-icon img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 3px;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px var(--green));
+}
+
+.roster-icon.image-error img {
+  display: none;
+}
+
+.fallback-icon {
+  position: relative;
+  z-index: 0;
+  text-shadow: 0 0 8px var(--green);
+}
+
+.roster-name {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.roster-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.roster-name small {
+  color: #81917c;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.selected-mark {
+  margin-left: auto;
+  color: var(--item-color);
+  font-size: 9px;
+}
+
+.roster-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding: 14px;
+  border-top: 1px solid var(--line);
+  color: #788873;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.8px;
+}
+
+.mini-pulse {
+  width: 5px;
+  height: 5px;
+}
+
+/* =========================================
+   OMNITRIX HOLOGRAPHIC DISPLAY
+   ========================================= */
+
+.dial-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 0 18px;
+}
+
+.dial-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 4px 0;
+  color: #80917c;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.dial-coordinates {
+  color: var(--green);
+}
+
+.omnitrix {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 390px);
+  aspect-ratio: 1;
+  margin: 26px auto 25px;
+  filter: drop-shadow(0 18px 25px #000a);
+  isolation: isolate;
+}
+
+/* Metallic outer casing */
+
+.dial-outer {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 7px solid #171b15;
+  border-radius: 39%;
+  background:
+    radial-gradient(ellipse at 25% 15%, #929887 0%, transparent 25%),
+    radial-gradient(ellipse at 75% 85%, #10140e 0%, transparent 36%),
+    linear-gradient(145deg, #777e6c 0%, #41483a 18%, #22271f 36%, #59614d 52%, #171b15 72%, #68705a 100%);
+  box-shadow:
+    inset 0 0 0 3px #969d87,
+    inset 0 0 0 8px #30372a,
+    inset 0 0 22px 10px #000c,
+    0 0 0 3px #090c08,
+    0 0 0 7px #252b22,
+    0 0 0 9px #080a07,
+    0 0 30px #a1ff2426;
+  transform: rotate(-4deg);
+}
+
+.dial-ring {
+  position: absolute;
+  display: grid;
+  place-items: center;
+}
+
+.ring-outer {
+  inset: 7%;
+  border: 5px solid #252c22;
+  border-radius: 35%;
+  background: linear-gradient(135deg, #555d4d, #20271e 48%, #747b69);
+  box-shadow:
+    inset 0 0 0 2px #818776,
+    inset 0 0 0 7px #343c2e,
+    0 0 0 2px #11160f;
+}
+
+.ring-middle {
+  inset: 14%;
+  border: 8px solid #454d3e;
+  border-radius: 32%;
+  background: linear-gradient(145deg, #252d22, #11170f 55%, #3e4735);
+  box-shadow:
+    inset 0 0 0 2px #11160f,
+    inset 0 0 0 5px #65705a,
+    0 0 0 2px #171c14;
+}
+
+/* The central green display */
+
+.ring-inner {
+  position: absolute;
+  inset: 23%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 5px solid #858c75;
+  border-radius: 25%;
+  background:
+    radial-gradient(ellipse at 50% 35%, #e0ffb2 0%, #b9ff67 15%, #9dff24 40%, #4c9b0b 76%, #173c09 100%);
+  box-shadow:
+    inset 0 0 0 3px #29351e,
+    inset 0 0 24px 7px #1b4708,
+    0 0 0 4px #292f23,
+    0 0 0 7px #6c7460,
+    0 0 0 10px #171c14,
+    0 0 30px #9dff2470;
+  transform: rotate(4deg);
+}
+
+/* Main alien image container */
+
+.alien-image-wrap {
+  position: absolute;
+  inset: 7%;
+  display: grid;
+  place-items: center;
+  width: 86%;
+  height: 86%;
+  overflow: hidden;
+  isolation: isolate;
+  background: transparent;
+}
+
+/* FIX: keep the actual alien visible */
+
+.alien-picture {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 2%;
+  object-fit: contain;
+  object-position: center;
+  opacity: 1;
+  background: transparent;
+
+  /* Screen blending reveals the glowing alien artwork */
+  mix-blend-mode: screen;
+
+  /* Green holographic glow */
+  filter:
+    grayscale(1)
+    sepia(1)
+    saturate(5)
+    hue-rotate(55deg)
+    brightness(1.25)
+    contrast(1.2)
+    drop-shadow(0 0 5px #a1ff48)
+    drop-shadow(0 0 14px #39ff14);
+}
+
+/* Green light behind the alien */
+
+.alien-image-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(80, 255, 45, 0.25), rgba(50, 255, 20, 0.08) 45%, transparent 72%);
+  pointer-events: none;
+}
+
+/* Holographic scanlines */
+
+.alien-image-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 4px,
+    rgba(125, 255, 90, 0.1) 5px,
+    transparent 6px
+  );
+  pointer-events: none;
+}
+
+/* Fallback symbol if an image cannot load */
+
+.dial-fallback {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  color: #102908;
+  font-size: clamp(45px, 7vw, 80px);
+  font-weight: 900;
+  text-shadow: 0 0 8px #c8ff9b, 0 0 24px var(--green);
+}
+
+.alien-image-wrap.image-error .alien-picture {
+  display: none;
+}
+
+.alien-image-wrap.image-error .dial-fallback {
+  display: block;
+}
+
+/* Casing details */
+
+.dial-top-notch,
+.dial-bottom-notch {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  width: 25px;
+  height: 10px;
+  transform: translateX(-50%);
+  border: 2px solid #717967;
+  border-radius: 2px;
+  background: #1b2117;
+  box-shadow: inset 0 0 0 1px #080b07;
+}
+
+.dial-top-notch {
+  top: 1px;
+}
+
+.dial-bottom-notch {
+  bottom: 1px;
+}
+
+.dial-side-mark {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  width: 14px;
+  height: 29px;
+  transform: translateY(-50%);
+  border: 2px solid #737b67;
+  background: linear-gradient(90deg, #11160f, #37402e);
+  box-shadow: 0 0 0 2px #151a12;
+}
+
+.mark-left {
+  left: 4%;
+}
+
+.mark-right {
+  right: 4%;
+}
+
+.dial-outer::before,
+.dial-outer::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 13%;
+  height: 5%;
+  border: 2px solid #26331d;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #72cb16, #b7ff52, #3d7b0c);
+  box-shadow: 0 0 8px #a1ff243d;
+}
+
+.dial-outer::before {
+  top: 11%;
+  left: 10%;
+  transform: rotate(-45deg);
+}
+
+.dial-outer::after {
+  right: 10%;
+  bottom: 11%;
+  transform: rotate(-45deg);
+}
+
+.powered-off .dial-outer {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.power-off-icon {
+  color: #18320e;
+}
+
+/* =========================================
+   DIAL CONTROLS
+   ========================================= */
+
+.dial-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.round-control {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  border: 1px solid #40503a;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #141b11, #070b06);
+  color: #d0ddc8;
+  cursor: pointer;
+  transition: border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.round-control:hover {
+  border-color: var(--green);
+  color: var(--green);
+  box-shadow: 0 0 12px #a1ff4826;
+  transform: translateY(-1px);
+}
+
+.transform-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 170px;
+  padding: 14px 19px;
+  border: 2px solid #b8ff75;
+  background: linear-gradient(135deg, #baff69, var(--green) 60%, #7cda12);
+  color: #101909;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  box-shadow: 0 0 22px #a1ff4824, inset 0 1px #ffffff80;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.transform-button:hover:not(:disabled) {
+  background: #c2ff7b;
+  box-shadow: 0 0 30px #a1ff4855;
+  transform: translateY(-1px);
+}
+
+.transform-button.revert {
+  border-color: #ffc45c;
+  background: #ffc45c;
+  box-shadow: 0 0 18px #ffc45c22;
+}
+
+.transform-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 18px;
+  color: #82917c;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.transformed-dot {
+  background: var(--alien-color);
+  box-shadow: 0 0 10px var(--alien-color);
+}
+
+/* =========================================
+   ALIEN PROFILE
+   ========================================= */
+
+.profile-content {
+  padding: 18px;
+}
+
+.alien-type {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--alien-color);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.type-line {
+  width: 18px;
+  height: 2px;
+  flex-shrink: 0;
+  background: var(--alien-color);
+  box-shadow: 0 0 8px var(--alien-color);
+}
+
+.alien-title {
+  margin: 11px 0 8px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(22px, 2.4vw, 30px);
+  overflow-wrap: anywhere;
+}
+
+.alien-description {
+  min-height: 55px;
+  margin: 0;
+  color: #98a794;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.identity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.identity-item {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #a1ff481c;
+  background: linear-gradient(145deg, #a1ff480b, #a1ff4803);
+}
+
+.identity-item span,
+.stat-label span {
+  display: block;
+  color: #7d8c77;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.6px;
+}
+
+.identity-item strong {
+  display: block;
+  margin-top: 6px;
+  color: #d7e3d1;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.detail-divider {
+  height: 1px;
+  margin: 20px 0;
+  background: var(--line);
+}
+
+.abilities-heading,
+.stats-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #bdcbb6;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+}
+
+.abilities-heading {
+  justify-content: flex-start;
+}
+
+.abilities-heading svg,
+.stats-heading svg {
+  color: var(--alien-color);
+}
+
+.ability-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.ability-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #afbea9;
+  font-size: 13px;
+}
+
+.ability-check {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  border: 1px solid #a1ff4866;
+  color: var(--alien-color);
+}
+
+.stats-heading {
+  margin-bottom: 16px;
+}
+
+.stat-row {
+  margin-bottom: 13px;
+}
+
+.stat-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.stat-label strong {
+  color: #dce8d6;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+}
+
+.stat-track {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  background: #20291c;
+}
+
+.stat-fill {
+  height: 100%;
+  box-shadow: 0 0 8px var(--alien-color);
+  transition: width 350ms ease;
+}
+
+/* =========================================
+   FOOTER
+   ========================================= */
+
+.bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 30px;
+  padding: 17px 0;
+  border-top: 1px solid var(--line);
+  color: #92a18b;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+}
+
+.footer-mark {
+  color: var(--green);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.footer-muted {
+  color: #657260;
+}
+
+.footer-center {
+  color: #788975;
+}
+
+.footer-center strong {
+  color: var(--alien-color);
+}
+
+.power-button.on {
+  color: var(--green);
+  border-color: #597a3c;
+  box-shadow: inset 0 0 12px #a1ff480b;
+}
+
+/* =========================================
+   MULTIPLAYER
+   ========================================= */
+
+.multiplayer-panel,
+.multiplayer-section,
+.room-panel,
+.lobby-panel {
+  min-width: 0;
+  color: #dce8d6;
+}
+
+.multiplayer-panel input,
+.multiplayer-section input,
+.room-panel input,
+.lobby-panel input,
+.multiplayer-panel select,
+.multiplayer-section select,
+.room-panel select,
+.lobby-panel select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #34462b;
+  border-radius: 0;
+  background: #070c06;
+  color: #e8f5eb;
+}
+
+.multiplayer-panel button,
+.multiplayer-section button,
+.room-panel button,
+.lobby-panel button {
+  cursor: pointer;
+}
+
+.multiplayer-panel button:not(:disabled):hover,
+.multiplayer-section button:not(:disabled):hover,
+.room-panel button:not(:disabled):hover,
+.lobby-panel button:not(:disabled):hover {
+  border-color: var(--green);
+}
+
+/* =========================================
+   TRANSFORMATION ANIMATION
+   ========================================= */
+
+.transform-overlay {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #020602ef;
+  backdrop-filter: blur(8px);
+}
+
+.transform-overlay::before,
+.transform-overlay::after {
+  content: "";
+  position: absolute;
+  width: min(80vw, 600px);
+  aspect-ratio: 1;
+  border: 1px solid #a1ff4840;
+  border-radius: 50%;
+  box-shadow: 0 0 35px #a1ff4810, inset 0 0 35px #a1ff4810;
+  animation: transform-ring 1.8s ease-in-out infinite;
+}
+
+.transform-overlay::after {
+  width: min(60vw, 420px);
+  animation-delay: 180ms;
+}
+
+.transform-flash {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border: 3px solid var(--green);
+  border-radius: 38%;
+  box-shadow: 0 0 45px #a1ff4866, inset 0 0 45px #a1ff4826;
+  animation: transform-flash 900ms ease-in-out infinite alternate;
+}
+
+.transform-message {
+  position: relative;
+  z-index: 1;
+  padding: 35px;
+  text-align: center;
+  color: var(--green);
+  text-shadow: 0 0 20px #a1ff4840;
+}
+
+.transform-message h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(18px, 4vw, 28px);
+  letter-spacing: 2px;
+}
+
+.transform-message p {
+  color: #c1d2ba;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.spin-icon {
+  animation: spin 0.8s linear infinite;
+}
+
+/* =========================================
+   KEYFRAMES
+   ========================================= */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes status-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 9px var(--green);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 3px var(--green);
+  }
+}
+
+@keyframes transform-ring {
+  0%, 100% {
+    transform: scale(0.94) rotate(0deg);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.04) rotate(45deg);
+    opacity: 0.9;
+  }
+}
+
+@keyframes transform-flash {
+  from {
+    transform: rotate(0deg) scale(0.9);
+    opacity: 0.65;
+  }
+  to {
+    transform: rotate(45deg) scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* =========================================
+   TABLETS
+   ========================================= */
+
+@media (max-width: 1100px) {
+  .app-shell {
+    padding: 0 3%;
+  }
+
+  .main-layout {
+    grid-template-columns: minmax(185px, 0.8fr) minmax(270px, 1.1fr);
+  }
+
+  .alien-details {
+    grid-column: 1 / -1;
+  }
+}
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 680px) {
+  .app-shell {
+    padding: 0 16px;
+  }
+
+  .topbar {
+    min-height: 82px;
+  }
+
+  .brand-symbol {
+    width: 39px;
+    height: 39px;
+  }
+
+  .brand {
+    gap: 9px;
+  }
+
+  .brand p {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+
+  .system-status {
+    gap: 6px;
+    font-size: 8px;
+  }
+
+  .version {
+    display: none;
+  }
+
+  .dashboard {
+    padding-top: 24px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .main-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .alien-roster {
+    order: 2;
+  }
+
+  .dial-section {
+    order: 1;
+  }
+
+  .alien-details {
+    order: 3;
+    grid-column: auto;
+  }
+
+  .roster-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .roster-item {
+    gap: 7px;
+    padding: 6px;
+  }
+
+  .roster-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .roster-name strong {
+    font-size: 12px;
+  }
+
+  .omnitrix {
+    width: min(82vw, 350px);
+    margin: 24px auto;
+  }
+
+  .dial-controls {
+    gap: 9px;
+  }
+
+  .round-control {
+    width: 38px;
+    height: 38px;
+  }
+
+  .transform-button {
+    min-width: 0;
+    flex: 1;
+    padding: 13px 8px;
+    font-size: 9px;
+  }
+
+  .bottom-bar {
+    flex-wrap: wrap;
+    font-size: 8px;
+  }
+
+  .footer-center {
+    order: 3;
+    width: 100%;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(19px, 5vw, 27px);
+  }
+
+  .reset-button,
+  .power-button {
+    padding: 9px 10px;
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 390px) {
+  .app-shell {
+    padding: 0 11px;
+  }
+
+  .brand h1 {
+    font-size: 17px;
+    letter-spacing: 1px;
+  }
+
+  .brand p {
+    letter-spacing: 0.5px;
+  }
+
+  .system-status {
+    font-size: 7px;
+  }
+
+  .roster-list {
+    grid-template-columns: 1fr;
+  }
+
+  .dial-label {
+    font-size: 8px;
+  }
+
+  .identity-grid {
+    gap: 7px;
+  }
+
+  .identity-item {
+    padding: 9px;
+  }
+}
+
+/* Respect reduced-motion preferences */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
