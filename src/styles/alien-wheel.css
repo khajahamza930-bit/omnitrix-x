@@ -1,0 +1,69 @@
+
+.omnitrix-3d-selector {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0 20px;
+  color: #c8ff75;
+}
+
+.omnitrix-3d-heading {
+  width: min(100%, 650px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: #b8ff73;
+  font: 700 11px/1.5 monospace;
+  letter-spacing: 0.13em;
+}
+
+.omnitrix-status-light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8cff27;
+  box-shadow: 0 0 12px #8cff27;
+  animation: omni-status-pulse 1.5s infinite;
+}
+
+.omnitrix-status-online {
+  padding: 3px 8px;
+  border: 1px solid #477c28;
+  border-radius: 4px;
+  color: #8cff27;
+  background: #10200b;
+}
+
+.omnitrix-3d-hint {
+  margin: 0;
+  color: #829576;
+  text-align: center;
+  font: 10px/1.6 monospace;
+  letter-spacing: 0.12em;
+}
+
+@keyframes omni-status-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 520px) {
+  .omnitrix-3d-heading {
+    font-size: 9px;
+    gap: 7px;
+  }
+
+  .omnitrix-3d-hint {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .omnitrix-status-light {
+    animation: none;
+  }
+}

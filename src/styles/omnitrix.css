@@ -1,0 +1,345 @@
+
+/* =====================================
+   OMNITRIX X — 3D OPENING SCREEN
+   ===================================== */
+
+.omnitrix-intro {
+  --omni-green: #65ff36;
+  --omni-dark: #030805;
+
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  overflow: hidden;
+  perspective: 1100px;
+  background:
+    radial-gradient(ellipse at 50% 42%, #14331b 0%, #07110a 38%, #020403 78%);
+  color: #e9ffe9;
+  font-family: Arial, sans-serif;
+}
+
+.omnitrix-atmosphere {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 45%, #39ff241c 0%, transparent 38%),
+    repeating-radial-gradient(
+      circle at center,
+      transparent 0 60px,
+      #4bff3810 61px 62px,
+      transparent 63px 100px
+    );
+  animation: omni-atmosphere 8s ease-in-out infinite alternate;
+}
+
+.omnitrix-device {
+  position: relative;
+  z-index: 1;
+  width: min(72vw, 340px);
+  aspect-ratio: 0.83;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 25px 30px #000);
+  animation: omni-float 4s ease-in-out infinite;
+}
+
+.watch-body {
+  position: absolute;
+  inset: 12% 3%;
+  z-index: 2;
+  border-radius: 32% 32% 35% 35%;
+  background: linear-gradient(
+    135deg,
+    #778079 0%,
+    #303833 12%,
+    #080d0a 28%,
+    #414942 43%,
+    #101511 58%,
+    #606a61 75%,
+    #171d19 100%
+  );
+  box-shadow:
+    inset 0 0 0 3px #89948a,
+    inset 0 0 0 9px #161c18,
+    inset 0 8px 14px #b6c0b433,
+    inset 0 -15px 22px #000,
+    0 0 0 2px #050805,
+    0 0 24px #41ff3025;
+}
+
+.watch-strap {
+  position: absolute;
+  left: 29%;
+  width: 42%;
+  height: 29%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #0b100d 0 12px,
+      #303832 13px 15px,
+      #101511 16px 26px
+    );
+  border: 4px solid #343d36;
+  box-shadow: inset 0 0 10px #000;
+}
+
+.strap-top {
+  top: -7%;
+  border-radius: 22px 22px 8px 8px;
+  transform: translateZ(-12px) rotateX(10deg);
+}
+
+.strap-bottom {
+  bottom: -7%;
+  border-radius: 8px 8px 22px 22px;
+  transform: translateZ(-12px) rotateX(-10deg);
+}
+
+.watch-bezel {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(
+    from 15deg,
+    #101510,
+    #8c978c,
+    #272e29,
+    #5e685f,
+    #0b100d,
+    #687268,
+    #151a16,
+    #a3ada2,
+    #101510
+  );
+  box-shadow:
+    inset 0 0 0 5px #0b100d,
+    inset 0 0 0 9px #687268,
+    inset 0 0 0 14px #161c17,
+    0 8px 15px #000;
+}
+
+.metal-rim {
+  position: absolute;
+  inset: 12%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #101510, #59635a 35%, #111611 70%);
+  box-shadow:
+    inset 0 0 0 4px #202820,
+    inset 0 0 0 8px #030603,
+    0 0 0 3px #080c08;
+}
+
+.green-ring {
+  position: absolute;
+  inset: 12%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #071109;
+  border: 5px solid #43ff24;
+  box-shadow:
+    0 0 8px #55ff36,
+    0 0 20px #39ff3680,
+    inset 0 0 18px #38ff3550;
+  animation: omni-pulse 2.4s ease-in-out infinite;
+}
+
+.omnitrix-screen {
+  width: 82%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #c5ff95, #70ff29 45%, #1f9c18 100%);
+  box-shadow:
+    inset 0 0 12px #e1ffbc,
+    inset 0 -12px 24px #087b18,
+    0 0 30px #5aff2a80;
+}
+
+.hourglass-symbol {
+  width: 68%;
+  height: 68%;
+  filter: drop-shadow(0 0 5px #030903);
+}
+
+.device-bolt {
+  position: absolute;
+  z-index: 4;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #d7e0d6, #5d675e 50%, #101510 80%);
+  border: 2px solid #101510;
+  box-shadow: 0 0 0 2px #4c554d;
+}
+
+.bolt-one {
+  top: 7%;
+  left: 46%;
+}
+
+.bolt-two {
+  right: 7%;
+  top: 46%;
+}
+
+.bolt-three {
+  bottom: 7%;
+  left: 46%;
+}
+
+.bolt-four {
+  left: 7%;
+  top: 46%;
+}
+
+.omnitrix-intro-text {
+  z-index: 2;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.system-label {
+  color: var(--omni-green);
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 12px #39ff3680;
+}
+
+.omnitrix-intro-text h1 {
+  margin: 10px 0;
+  font-size: clamp(30px, 7vw, 48px);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 3px;
+  text-shadow: 0 0 22px #39ff3630;
+}
+
+.omnitrix-intro-text h1 span {
+  color: var(--omni-green);
+}
+
+.system-subtitle {
+  color: #9daea0;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.activate-omnitrix {
+  margin-top: 20px;
+  padding: 14px 25px;
+  border: 1px solid #70ff4b;
+  border-radius: 5px;
+  color: #eaffdf;
+  background: linear-gradient(180deg, #214a20, #08170a);
+  box-shadow:
+    0 0 18px #39ff3630,
+    inset 0 0 12px #39ff3615;
+  font-weight: 800;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.activate-omnitrix span {
+  margin-right: 8px;
+  color: var(--omni-green);
+  font-size: 18px;
+}
+
+.activate-omnitrix:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px #39ff3660;
+}
+
+.activate-omnitrix:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 4px;
+}
+
+.opening-message {
+  z-index: 2;
+  color: var(--omni-green);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.loading-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--omni-green);
+  box-shadow: 0 0 12px var(--omni-green);
+  animation: omni-pulse 0.7s infinite alternate;
+}
+
+.is-opening .green-ring {
+  animation: omni-open-flash 1.8s ease-out forwards;
+}
+
+.is-opening .omnitrix-screen {
+  animation: omni-screen-flash 1.8s ease-out forwards;
+}
+
+@keyframes omni-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+
+@keyframes omni-pulse {
+  from { opacity: 0.75; }
+  to { opacity: 1; }
+}
+
+@keyframes omni-atmosphere {
+  from { opacity: 0.5; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes omni-open-flash {
+  0%, 45% { box-shadow: 0 0 12px #39ff36; }
+  60% { box-shadow: 0 0 55px #39ff36, 0 0 100px #39ff36; }
+  100% { box-shadow: 0 0 35px #39ff36; }
+}
+
+@keyframes omni-screen-flash {
+  0%, 55% { filter: brightness(1); }
+  70% { filter: brightness(2.5); }
+  100% { filter: brightness(1.2); }
+}
+
+@media (max-width: 480px) {
+  .omnitrix-device {
+    width: min(78vw, 300px);
+  }
+
+  .system-label {
+    letter-spacing: 2px;
+  }
+
+  .system-subtitle {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .omnitrix-device,
+  .omnitrix-atmosphere,
+  .green-ring,
+  .loading-dot {
+    animation: none;
+  }
+}
