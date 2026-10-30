@@ -1,4 +1,3 @@
-
 import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
@@ -7,6 +6,7 @@ import {
   Float,
   OrbitControls,
 } from "@react-three/drei";
+import { DoubleSide } from "three";
 
 import Heatblast from "./aliens/Heatblast";
 
@@ -14,12 +14,7 @@ import Heatblast from "./aliens/Heatblast";
 // METAL RINGS
 // --------------------------------------------------
 
-function MetalRing({
-  radius,
-  tube,
-  color,
-  emissive = "#000000",
-}) {
+function MetalRing({ radius, tube, color, emissive = "#000000" }) {
   return (
     <mesh rotation={[Math.PI / 2, 0, 0]}>
       <torusGeometry args={[radius, tube, 20, 96]} />
@@ -94,10 +89,7 @@ function WatchBody() {
       </mesh>
 
       {/* Right-side button */}
-      <mesh
-        position={[1.34, 0, 0]}
-        rotation={[0, 0, Math.PI / 2]}
-      >
+      <mesh position={[1.34, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.17, 0.17, 0.3, 32]} />
         <meshStandardMaterial
           color="#91ff5b"
@@ -108,75 +100,70 @@ function WatchBody() {
       </mesh>
 
       {/* Left-side button */}
-      <mesh
-        position={[-1.34, 0, 0]}
-        rotation={[0, 0, Math.PI / 2]}
-      >
+      <mesh position={[-1.34, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.14, 0.14, 0.3, 32]} />
-        <meshStandardMaterial
-          color="#aab5b0"
-          metalness={0.9}
-        />
+        <meshStandardMaterial color="#aab5b0" metalness={0.9} />
       </mesh>
     </group>
   );
 }
 
 // --------------------------------------------------
-// HOLOGRAM ENERGY BEAM
+// HOLOGRAM ENERGY BEAM (taller now, rings lie flat)
 // --------------------------------------------------
 
 function EnergyBeam() {
   return (
-    <group position={[0, 0.05, 0]}>
-      {/* Transparent projection beam */}
+    <group position={[0, 0.4, 0]}>
+      {/* see-through projection beam */}
       <mesh>
-        <cylinderGeometry
-          args={[0.48, 0.85, 1.65, 48, 1, true]}
-        />
+        <cylinderGeometry args={[0.55, 0.9, 1.9, 48, 1, true]} />
         <meshBasicMaterial
           color="#42ff80"
           transparent
-          opacity={0.055}
-          side={THREE_DOUBLE_SIDE}
+          opacity={0.05}
+          side={DoubleSide}
           depthWrite={false}
         />
       </mesh>
 
-      {/* Bottom energy ring */}
-      <mesh position={[0, -0.78, 0]}>
-        <torusGeometry args={[0.8, 0.018, 12, 64]} />
+      {/* bottom ring */}
+      <mesh position={[0, -0.95, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.9, 0.018, 12, 64]} />
         <meshBasicMaterial color="#42ff80" />
       </mesh>
 
-      {/* Top energy ring */}
-      <mesh position={[0, 0.78, 0]}>
-        <torusGeometry args={[0.48, 0.018, 12, 64]} />
+      {/* top ring */}
+      <mesh position={[0, 0.95, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.55, 0.018, 12, 64]} />
         <meshBasicMaterial color="#42ff80" />
       </mesh>
     </group>
   );
 }
-
-const THREE_DOUBLE_SIDE = 2;
 
 // --------------------------------------------------
 // ALIEN HOLOGRAM DISPLAY
 // --------------------------------------------------
 
-function HologramDisplay({ alien, selectedIndex }) {
+// height of the watch screen, the alien stands on this
+const PLATFORM_TOP = -0.55;
+
+function HologramDisplay({ selectedIndex }) {
+  // only Heatblast has a real model for now
   if (selectedIndex === 0) {
     return (
-      <group position={[0, 0.55, 0]} scale={1.05}>
-        <Float speed={1.5} floatIntensity={0.08}>
-          <Heatblast hologram={true} />
+      <group position={[0, PLATFORM_TOP + 0.12, 0]}>
+        <Float speed={1.5} rotationIntensity={0} floatIntensity={0.5}>
+          <Heatblast />
         </Float>
       </group>
     );
   }
 
+  // placeholder for the other aliens
   return (
-    <group position={[0, 1.35, 0]}>
+    <group position={[0, 0.9, 0]}>
       <mesh>
         <icosahedronGeometry args={[0.42, 1]} />
         <meshBasicMaterial
@@ -194,9 +181,7 @@ function HologramDisplay({ alien, selectedIndex }) {
 // COMPLETE WATCH SCENE
 // --------------------------------------------------
 
-function WatchScene({ aliens, selectedIndex }) {
-  const selectedAlien = aliens[selectedIndex];
-
+function WatchScene({ selectedIndex }) {
   return (
     <>
       {/* Background */}
@@ -205,22 +190,11 @@ function WatchScene({ aliens, selectedIndex }) {
       {/* Lighting */}
       <ambientLight intensity={1.2} />
 
-      <directionalLight
-        position={[4, 6, 5]}
-        intensity={2.5}
-      />
+      <directionalLight position={[4, 6, 5]} intensity={2.5} />
 
-      <pointLight
-        position={[0, 2, 0]}
-        intensity={2}
-        color="#38ff76"
-      />
+      <pointLight position={[0, 2, 0]} intensity={2} color="#38ff76" />
 
-      <pointLight
-        position={[-3, 1, 2]}
-        intensity={1.2}
-        color="#1bff8a"
-      />
+      <pointLight position={[-3, 1, 2]} intensity={1.2} color="#1bff8a" />
 
       {/* Watch */}
       <WatchBody />
@@ -230,18 +204,16 @@ function WatchScene({ aliens, selectedIndex }) {
 
       {/* Selected alien */}
       <Suspense fallback={null}>
-        <HologramDisplay
-          alien={selectedAlien}
-          selectedIndex={selectedIndex}
-        />
+        <HologramDisplay selectedIndex={selectedIndex} />
       </Suspense>
 
-      {/* Ground shadows */}
+      {/* Ground shadows (softer, so no hard dark square) */}
       <ContactShadows
         position={[0, -1.04, 0]}
-        opacity={0.4}
-        scale={5}
-        blur={2}
+        opacity={0.25}
+        scale={8}
+        blur={3.5}
+        far={2}
       />
 
       {/* Environment */}
@@ -262,10 +234,7 @@ function WatchScene({ aliens, selectedIndex }) {
 // MAIN OMNITRIX 3D WATCH COMPONENT
 // --------------------------------------------------
 
-export default function Omnitrix3DWatch({
-  aliens = [],
-  selectedIndex = 0,
-}) {
+export default function Omnitrix3DWatch({ aliens = [], selectedIndex = 0 }) {
   if (!aliens.length) {
     return <p>Loading alien database...</p>;
   }
@@ -289,10 +258,7 @@ export default function Omnitrix3DWatch({
         }}
         dpr={[1, 1.5]}
       >
-        <WatchScene
-          aliens={aliens}
-          selectedIndex={selectedIndex}
-        />
+        <WatchScene selectedIndex={selectedIndex} />
       </Canvas>
     </div>
   );
