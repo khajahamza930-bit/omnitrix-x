@@ -1,295 +1,297 @@
 
-import { useMemo, useRef } from "react";
+import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
+import {
+  ContactShadows,
+  Environment,
+  Float,
+  OrbitControls,
+} from "@react-three/drei";
 
-function Screw({ position }) {
+import Heatblast from "./aliens/Heatblast";
+
+// --------------------------------------------------
+// METAL RINGS
+// --------------------------------------------------
+
+function MetalRing({
+  radius,
+  tube,
+  color,
+  emissive = "#000000",
+}) {
   return (
-    <mesh position={position} rotation={[0, 0, Math.PI / 4]}>
-      <cylinderGeometry args={[0.035, 0.035, 0.018, 16]} />
-      <meshStandardMaterial color="#a5afa7" metalness={0.9} roughness={0.25} />
-      <mesh position={[0, 0.011, 0]}>
-        <boxGeometry args={[0.04, 0.008, 0.008]} />
-        <meshStandardMaterial color="#171c18" metalness={0.7} />
-      </mesh>
+    <mesh rotation={[Math.PI / 2, 0, 0]}>
+      <torusGeometry args={[radius, tube, 20, 96]} />
+      <meshStandardMaterial
+        color={color}
+        metalness={0.9}
+        roughness={0.22}
+        emissive={emissive}
+        emissiveIntensity={1}
+      />
     </mesh>
   );
 }
+
+// --------------------------------------------------
+// OMNITRIX WATCH BODY
+// --------------------------------------------------
 
 function WatchBody() {
-  const screws = [
-    [-0.72, 0.72, 0.22],
-    [0.72, 0.72, 0.22],
-    [-0.72, -0.72, 0.22],
-    [0.72, -0.72, 0.22],
-  ];
-
   return (
-    <group>
-      {/* Thick watch housing */}
-      <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[1.32, 1.32, 0.34, 12]} />
+    <group position={[0, -0.85, 0]}>
+      {/* Main watch housing */}
+      <mesh>
+        <cylinderGeometry args={[1.35, 1.35, 0.34, 96]} />
         <meshStandardMaterial
-          color="#222a24"
-          metalness={0.92}
-          roughness={0.27}
-        />
-      </mesh>
-
-      {/* Outer armored rim */}
-      <mesh position={[0, 0.185, 0]} castShadow>
-        <cylinderGeometry args={[1.27, 1.27, 0.09, 48]} />
-        <meshStandardMaterial
-          color="#6b766d"
+          color="#202a27"
           metalness={0.95}
-          roughness={0.24}
+          roughness={0.25}
         />
       </mesh>
 
-      {/* Dark inset face */}
-      <mesh position={[0, 0.238, 0]}>
-        <cylinderGeometry args={[1.17, 1.17, 0.055, 48]} />
+      {/* Upper metal bezel */}
+      <mesh position={[0, 0.19, 0]}>
+        <cylinderGeometry args={[1.25, 1.35, 0.12, 96]} />
         <meshStandardMaterial
-          color="#101610"
-          metalness={0.65}
-          roughness={0.34}
+          color="#a5b4ae"
+          metalness={1}
+          roughness={0.2}
         />
       </mesh>
 
-      {/* Green energy ring */}
-      <mesh position={[0, 0.276, 0]}>
-        <torusGeometry args={[1.02, 0.035, 12, 64]} />
+      {/* Dark screen */}
+      <mesh position={[0, 0.27, 0]}>
+        <cylinderGeometry args={[1.16, 1.16, 0.055, 96]} />
         <meshStandardMaterial
-          color="#69ff39"
-          emissive="#36e918"
-          emissiveIntensity={1.5}
-          metalness={0.3}
-          roughness={0.22}
+          color="#07130d"
+          metalness={0.5}
+          roughness={0.25}
         />
       </mesh>
 
-      {screws.map((position, index) => (
-        <Screw key={index} position={position} />
-      ))}
+      {/* Outer green energy ring */}
+      <MetalRing
+        radius={1.13}
+        tube={0.055}
+        color="#67ff80"
+        emissive="#00ff33"
+      />
 
-      {/* Side control buttons */}
-      {[-1, 1].map((side) => (
-        <group key={side} position={[side * 1.28, 0.02, 0]}>
-          <mesh rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.16, 0.16, 0.19, 24]} />
-            <meshStandardMaterial
-              color="#455147"
-              metalness={0.9}
-              roughness={0.25}
-            />
-          </mesh>
-          <mesh position={[side * 0.09, 0, 0]}>
-            <sphereGeometry args={[0.095, 20, 16]} />
-            <meshStandardMaterial
-              color="#65ff3c"
-              emissive="#2bff19"
-              emissiveIntensity={0.7}
-            />
-          </mesh>
-        </group>
-      ))}
+      {/* Inner green energy ring */}
+      <MetalRing
+        radius={0.94}
+        tube={0.018}
+        color="#20a849"
+        emissive="#00ff33"
+      />
+
+      {/* Omnitrix symbol */}
+      <mesh position={[0, 0.32, 0]}>
+        <circleGeometry args={[0.31, 6]} />
+        <meshBasicMaterial color="#9bff42" />
+      </mesh>
+
+      {/* Right-side button */}
+      <mesh
+        position={[1.34, 0, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
+        <cylinderGeometry args={[0.17, 0.17, 0.3, 32]} />
+        <meshStandardMaterial
+          color="#91ff5b"
+          metalness={0.8}
+          emissive="#24ff45"
+          emissiveIntensity={0.8}
+        />
+      </mesh>
+
+      {/* Left-side button */}
+      <mesh
+        position={[-1.34, 0, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
+        <cylinderGeometry args={[0.14, 0.14, 0.3, 32]} />
+        <meshStandardMaterial
+          color="#aab5b0"
+          metalness={0.9}
+        />
+      </mesh>
     </group>
   );
 }
 
-function Hourglass() {
-  const shape = useMemo(() => {
-    const s = new THREE.Shape();
-    s.moveTo(-0.27, 0.32);
-    s.lineTo(0.27, 0.32);
-    s.lineTo(0.055, 0.04);
-    s.lineTo(0.27, -0.32);
-    s.lineTo(-0.27, -0.32);
-    s.lineTo(-0.055, 0.04);
-    s.closePath();
-    return s;
-  }, []);
+// --------------------------------------------------
+// HOLOGRAM ENERGY BEAM
+// --------------------------------------------------
 
+function EnergyBeam() {
   return (
-    <mesh position={[0, 0.34, 0.2]}>
-      <shapeGeometry args={[shape]} />
-      <meshStandardMaterial
-        color="#9aff68"
-        emissive="#46ff24"
-        emissiveIntensity={1.8}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  );
-}
+    <group position={[0, 0.05, 0]}>
+      {/* Transparent projection beam */}
+      <mesh>
+        <cylinderGeometry
+          args={[0.48, 0.85, 1.65, 48, 1, true]}
+        />
+        <meshBasicMaterial
+          color="#42ff80"
+          transparent
+          opacity={0.055}
+          side={THREE_DOUBLE_SIDE}
+          depthWrite={false}
+        />
+      </mesh>
 
-function AlienRotor({ aliens, selectedIndex, onSelect }) {
-  const rotor = useRef();
+      {/* Bottom energy ring */}
+      <mesh position={[0, -0.78, 0]}>
+        <torusGeometry args={[0.8, 0.018, 12, 64]} />
+        <meshBasicMaterial color="#42ff80" />
+      </mesh>
 
-  const count = aliens.length;
-  const angle = count ? (Math.PI * 2) / count : 0;
-
-  return (
-    <group
-      ref={rotor}
-      rotation={[0, 0, count ? -selectedIndex * angle : 0]}
-    >
-      {aliens.map((alien, index) => {
-        const a = index * angle;
-        const x = Math.sin(a) * 0.82;
-        const z = Math.cos(a) * 0.82;
-
-        return (
-          <group
-            key={alien.id ?? alien.name}
-            position={[x, 0.33, z]}
-            rotation={[0, a, 0]}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(index);
-            }}
-          >
-            <mesh castShadow>
-              <cylinderGeometry args={[0.235, 0.255, 0.09, 32]} />
-              <meshStandardMaterial
-                color={index === selectedIndex ? "#77ff43" : "#303b30"}
-                emissive={index === selectedIndex ? "#36ff18" : "#000000"}
-                emissiveIntensity={index === selectedIndex ? 0.8 : 0}
-                metalness={0.8}
-                roughness={0.25}
-              />
-            </mesh>
-
-            <mesh position={[0, 0.055, 0]}>
-              <cylinderGeometry args={[0.19, 0.19, 0.025, 32]} />
-              <meshStandardMaterial
-                color="#101810"
-                metalness={0.4}
-                roughness={0.3}
-              />
-            </mesh>
-
-            {alien.image && (
-              <AlienPortrait image={alien.image} />
-            )}
-          </group>
-        );
-      })}
+      {/* Top energy ring */}
+      <mesh position={[0, 0.78, 0]}>
+        <torusGeometry args={[0.48, 0.018, 12, 64]} />
+        <meshBasicMaterial color="#42ff80" />
+      </mesh>
     </group>
   );
 }
 
-function AlienPortrait({ image }) {
-  const texture = useMemo(() => {
-    const loader = new THREE.TextureLoader();
-    const tex = loader.load(image);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
-  }, [image]);
+const THREE_DOUBLE_SIDE = 2;
+
+// --------------------------------------------------
+// ALIEN HOLOGRAM DISPLAY
+// --------------------------------------------------
+
+function HologramDisplay({ alien, selectedIndex }) {
+  if (selectedIndex === 0) {
+    return (
+      <group position={[0, 0.55, 0]} scale={1.05}>
+        <Float speed={1.5} floatIntensity={0.08}>
+          <Heatblast hologram={true} />
+        </Float>
+      </group>
+    );
+  }
 
   return (
-    <mesh position={[0, 0.075, 0]}>
-      <circleGeometry args={[0.15, 32]} />
-      <meshBasicMaterial
-        map={texture}
-        transparent
-        side={THREE.DoubleSide}
-        toneMapped={false}
-      />
-    </mesh>
+    <group position={[0, 1.35, 0]}>
+      <mesh>
+        <icosahedronGeometry args={[0.42, 1]} />
+        <meshBasicMaterial
+          color="#36ff80"
+          wireframe
+          transparent
+          opacity={0.65}
+        />
+      </mesh>
+    </group>
   );
 }
 
-function WatchScene({ aliens, selectedIndex, onSelect }) {
-  const alien = aliens[selectedIndex];
+// --------------------------------------------------
+// COMPLETE WATCH SCENE
+// --------------------------------------------------
+
+function WatchScene({ aliens, selectedIndex }) {
+  const selectedAlien = aliens[selectedIndex];
 
   return (
     <>
-      <color attach="background" args={["#070b08"]} />
-      <ambientLight intensity={1.3} />
+      {/* Background */}
+      <color attach="background" args={["#050a07"]} />
+
+      {/* Lighting */}
+      <ambientLight intensity={1.2} />
+
       <directionalLight
-        position={[3, 5, 4]}
-        intensity={2.6}
-        castShadow
+        position={[4, 6, 5]}
+        intensity={2.5}
       />
-      <pointLight position={[-3, 2, -2]} intensity={35} color="#69ff42" />
 
-      <group rotation={[-0.2, 0, 0.12]} position={[0, -0.05, 0]}>
-        <WatchBody />
+      <pointLight
+        position={[0, 2, 0]}
+        intensity={2}
+        color="#38ff76"
+      />
 
-        <mesh position={[0, 0.28, 0]}>
-          <cylinderGeometry args={[0.59, 0.65, 0.09, 48]} />
-          <meshStandardMaterial
-            color="#19251a"
-            metalness={0.85}
-            roughness={0.22}
-          />
-        </mesh>
+      <pointLight
+        position={[-3, 1, 2]}
+        intensity={1.2}
+        color="#1bff8a"
+      />
 
-        <mesh position={[0, 0.34, 0]}>
-          <cylinderGeometry args={[0.51, 0.51, 0.06, 48]} />
-          <meshStandardMaterial
-            color="#102112"
-            emissive="#1a701c"
-            emissiveIntensity={0.35}
-            metalness={0.45}
-            roughness={0.25}
-          />
-        </mesh>
+      {/* Watch */}
+      <WatchBody />
 
-        <AlienRotor
-          aliens={aliens}
+      {/* Projection beam */}
+      <EnergyBeam />
+
+      {/* Selected alien */}
+      <Suspense fallback={null}>
+        <HologramDisplay
+          alien={selectedAlien}
           selectedIndex={selectedIndex}
-          onSelect={onSelect}
         />
+      </Suspense>
 
-        <Hourglass />
-      </group>
-
-      {alien && (
-        <mesh position={[0, 1.5, 0]}>
-          <sphereGeometry args={[0.001, 8, 8]} />
-          <meshBasicMaterial color="#65ff3c" />
-        </mesh>
-      )}
-
+      {/* Ground shadows */}
       <ContactShadows
-        position={[0, -0.42, 0]}
-        opacity={0.55}
-        scale={4}
-        blur={2.5}
+        position={[0, -1.04, 0]}
+        opacity={0.4}
+        scale={5}
+        blur={2}
       />
-      <Environment preset="studio" />
+
+      {/* Environment */}
+      <Environment preset="city" />
+
+      {/* Camera controls */}
       <OrbitControls
         enablePan={false}
-        minDistance={3.8}
-        maxDistance={5.5}
-        minPolarAngle={0.45}
-        maxPolarAngle={1.45}
-        enableDamping
+        enableZoom={false}
+        minPolarAngle={0.8}
+        maxPolarAngle={1.8}
       />
     </>
   );
 }
 
+// --------------------------------------------------
+// MAIN OMNITRIX 3D WATCH COMPONENT
+// --------------------------------------------------
+
 export default function Omnitrix3DWatch({
   aliens = [],
   selectedIndex = 0,
-  onSelect,
 }) {
+  if (!aliens.length) {
+    return <p>Loading alien database...</p>;
+  }
+
   return (
-    <div style={{ width: "100%", height: "min(78vw, 520px)", minHeight: 320 }}>
+    <div
+      style={{
+        width: "100%",
+        height: "520px",
+        position: "relative",
+      }}
+    >
       <Canvas
-        shadows
-        camera={{ position: [0, 3.1, 3.8], fov: 42 }}
-        gl={{ antialias: true, alpha: false }}
-        dpr={[1, 1.7]}
+        camera={{
+          position: [0, 2.7, 5.5],
+          fov: 42,
+        }}
+        gl={{
+          antialias: true,
+          alpha: false,
+        }}
+        dpr={[1, 1.5]}
       >
         <WatchScene
           aliens={aliens}
           selectedIndex={selectedIndex}
-          onSelect={onSelect}
         />
       </Canvas>
     </div>
