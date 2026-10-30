@@ -13,7 +13,6 @@ import {
 } from "../hologram/hologramMaterials";
 
 // The feet are at y = 0 and the alien faces the +z direction.
-// Height is about 2 units before flames. Scaled down in the main component.
 
 function sec(x, y, z, rx, rz) {
   return { x, y, z, rx, rz };
@@ -21,17 +20,17 @@ function sec(x, y, z, rx, rz) {
 
 // ---------- body shapes (rings from bottom to top) ----------
 
-const LEG_X = 0.16;
+const LEG_X = 0.19;
 
 // wide shoulders, narrow waist
 const TORSO = [
-  sec(0, 0.84, 0, 0.2, 0.14),
-  sec(0, 0.95, 0, 0.16, 0.12),
-  sec(0, 1.08, 0, 0.19, 0.135),
-  sec(0, 1.22, 0, 0.27, 0.16),
-  sec(0, 1.38, 0, 0.37, 0.19),
-  sec(0, 1.5, 0, 0.42, 0.18),
-  sec(0, 1.58, 0, 0.24, 0.12),
+  sec(0, 0.84, 0, 0.21, 0.145),
+  sec(0, 0.95, 0, 0.165, 0.125),
+  sec(0, 1.08, 0, 0.195, 0.14),
+  sec(0, 1.22, 0, 0.28, 0.165),
+  sec(0, 1.38, 0, 0.39, 0.195),
+  sec(0, 1.5, 0, 0.44, 0.185),
+  sec(0, 1.58, 0, 0.25, 0.125),
   sec(0, 1.62, 0, 0.12, 0.09),
 ];
 
@@ -46,29 +45,30 @@ const HEAD = [
   sec(0, 1.93, -0.01, 0.1, 0.1),
 ];
 
+// thick legs
 function makeLeg(s) {
   const x = s * LEG_X;
   return [
-    sec(x, 0.14, 0, 0.08, 0.085),
-    sec(x, 0.3, -0.01, 0.1, 0.105),
-    sec(x, 0.46, 0, 0.09, 0.09),
-    sec(x, 0.52, 0, 0.095, 0.1),
-    sec(x, 0.62, 0, 0.12, 0.125),
-    sec(x, 0.75, 0, 0.145, 0.14),
-    sec(x, 0.9, 0, 0.15, 0.135),
+    sec(x, 0.14, 0, 0.1, 0.1),
+    sec(x, 0.3, -0.01, 0.12, 0.12),
+    sec(x, 0.46, 0, 0.105, 0.105),
+    sec(x, 0.52, 0, 0.11, 0.115),
+    sec(x, 0.62, 0, 0.14, 0.14),
+    sec(x, 0.75, 0, 0.17, 0.16),
+    sec(x, 0.9, 0, 0.17, 0.15),
   ];
 }
 
-// big forearm gauntlets
+// thick arms with big forearm gauntlets
 function makeArm(s) {
   return [
-    sec(s * 0.54, 0.84, 0.02, 0.06, 0.065),
-    sec(s * 0.53, 0.96, 0.02, 0.1, 0.1),
-    sec(s * 0.52, 1.1, 0.01, 0.13, 0.125),
-    sec(s * 0.5, 1.2, 0, 0.1, 0.1),
-    sec(s * 0.49, 1.32, 0, 0.11, 0.105),
-    sec(s * 0.47, 1.44, 0, 0.12, 0.115),
-    sec(s * 0.45, 1.54, 0, 0.13, 0.12),
+    sec(s * 0.54, 0.84, 0.02, 0.07, 0.075),
+    sec(s * 0.53, 0.96, 0.02, 0.115, 0.115),
+    sec(s * 0.52, 1.1, 0.01, 0.15, 0.14),
+    sec(s * 0.5, 1.2, 0, 0.115, 0.11),
+    sec(s * 0.49, 1.32, 0, 0.125, 0.12),
+    sec(s * 0.47, 1.44, 0, 0.135, 0.125),
+    sec(s * 0.45, 1.54, 0, 0.145, 0.13),
   ];
 }
 
@@ -84,20 +84,20 @@ function mirror(points, s) {
 
 const CENTER_CRACKS = [
   // down the stomach
-  [[0, 1.26, 0.17], [0.01, 1.18, 0.16], [-0.01, 1.1, 0.14], [0, 1.0, 0.125]],
+  [[0, 1.26, 0.17], [0.01, 1.18, 0.16], [-0.01, 1.1, 0.145], [0, 1.0, 0.13]],
   // down the back
-  [[0, 1.5, -0.17], [0.02, 1.35, -0.19], [0, 1.2, -0.15], [0, 1.05, -0.12]],
+  [[0, 1.5, -0.17], [0.02, 1.35, -0.2], [0, 1.2, -0.16], [0, 1.05, -0.13]],
 ];
 
 const SIDE_CRACKS = [
   // chest
-  [[0.1, 1.46, 0.19], [0.2, 1.38, 0.205], [0.27, 1.3, 0.175], [0.31, 1.2, 0.125]],
+  [[0.1, 1.46, 0.19], [0.2, 1.38, 0.21], [0.27, 1.3, 0.18], [0.31, 1.2, 0.13]],
   // stomach
-  [[0.05, 1.12, 0.14], [0.1, 1.04, 0.135], [0.13, 0.95, 0.125]],
+  [[0.05, 1.12, 0.145], [0.1, 1.04, 0.14], [0.13, 0.95, 0.13]],
   // arm
-  [[0.5, 1.5, 0.12], [0.52, 1.38, 0.13], [0.5, 1.26, 0.11], [0.52, 1.1, 0.14], [0.53, 0.98, 0.11]],
+  [[0.48, 1.5, 0.135], [0.5, 1.38, 0.13], [0.5, 1.26, 0.125], [0.52, 1.1, 0.15], [0.53, 0.98, 0.125]],
   // leg
-  [[LEG_X, 0.88, 0.14], [LEG_X + 0.01, 0.74, 0.15], [LEG_X, 0.62, 0.125], [LEG_X, 0.5, 0.1], [LEG_X, 0.36, 0.105]],
+  [[LEG_X, 0.88, 0.16], [LEG_X + 0.01, 0.74, 0.175], [LEG_X, 0.62, 0.155], [LEG_X, 0.5, 0.125], [LEG_X, 0.36, 0.13]],
 ];
 
 const CRACKS = [
@@ -306,21 +306,25 @@ function Head() {
   );
 }
 
-// big flame mane around the head
+// big, full flame mane around the head
 function Crown() {
   return (
     <group>
-      {/* three tall sheets crossed at the head */}
-      <FlameSheet position={[0, 1.9, -0.01]} width={0.36} height={0.85} tongues={5} seed={1} phase={0} />
-      <FlameSheet position={[0, 1.9, -0.01]} rotationY={Math.PI / 3} width={0.34} height={0.78} tongues={5} seed={2} phase={1.3} />
-      <FlameSheet position={[0, 1.9, -0.01]} rotationY={-Math.PI / 3} width={0.34} height={0.8} tongues={5} seed={3} phase={2.6} />
+      {/* three wide sheets crossed at the head */}
+      <FlameSheet position={[0, 1.95, 0]} width={0.5} height={0.95} tongues={6} seed={1} phase={0} />
+      <FlameSheet position={[0, 1.95, 0]} rotationY={Math.PI / 3} width={0.5} height={0.85} tongues={6} seed={2} phase={1.3} />
+      <FlameSheet position={[0, 1.95, 0]} rotationY={-Math.PI / 3} width={0.5} height={0.88} tongues={6} seed={3} phase={2.6} />
 
       {/* tallest flame, behind the head */}
-      <FlameSheet position={[0, 1.88, -0.07]} width={0.3} height={1.05} tongues={4} seed={4} phase={3.9} />
+      <FlameSheet position={[0, 1.93, -0.08]} width={0.42} height={1.05} tongues={5} seed={4} phase={3.9} />
 
       {/* side flames that widen the silhouette */}
-      <FlameSheet position={[-0.1, 1.82, -0.02]} tilt={0.65} width={0.2} height={0.5} tongues={3} seed={5} phase={0.7} />
-      <FlameSheet position={[0.1, 1.82, -0.02]} tilt={-0.65} width={0.2} height={0.5} tongues={3} seed={6} phase={2.1} />
+      <FlameSheet position={[-0.14, 1.85, -0.02]} tilt={0.7} width={0.3} height={0.6} tongues={4} seed={5} phase={0.7} />
+      <FlameSheet position={[0.14, 1.85, -0.02]} tilt={-0.7} width={0.3} height={0.6} tongues={4} seed={6} phase={2.1} />
+
+      {/* lower back flames */}
+      <FlameSheet position={[-0.1, 1.8, -0.1]} tilt={0.35} width={0.28} height={0.7} tongues={4} seed={7} phase={4.4} />
+      <FlameSheet position={[0.1, 1.8, -0.1]} tilt={-0.35} width={0.28} height={0.7} tongues={4} seed={8} phase={5.2} />
     </group>
   );
 }
@@ -333,7 +337,7 @@ function ChestArmor() {
           {/* chest plates */}
           <Plate position={[s * 0.2, 1.4, 0.15]} scale={[0.14, 0.11, 0.07]} rotation={[0.15, 0, s * 0.2]} />
           <Plate position={[s * 0.15, 1.26, 0.125]} scale={[0.1, 0.06, 0.05]} material={holoDarkRock} />
-          <Plate position={[s * 0.3, 1.3, 0.06]} scale={[0.07, 0.12, 0.09]} rotation={[0, 0, s * -0.15]} />
+          <Plate position={[s * 0.32, 1.3, 0.06]} scale={[0.07, 0.12, 0.09]} rotation={[0, 0, s * -0.15]} />
 
           {/* stomach plates */}
           <Plate position={[s * 0.1, 1.17, 0.12]} scale={[0.07, 0.045, 0.04]} />
@@ -348,11 +352,11 @@ function ChestArmor() {
       <Plate position={[0, 0.88, 0.12]} scale={[0.13, 0.09, 0.04]} material={holoDarkRock} />
 
       {/* back plates */}
-      <Plate position={[0, 1.4, -0.15]} scale={[0.24, 0.17, 0.06]} />
+      <Plate position={[0, 1.4, -0.15]} scale={[0.26, 0.17, 0.06]} />
       <Plate position={[0, 1.15, -0.12]} scale={[0.14, 0.1, 0.05]} material={holoDarkRock} />
 
       {/* Omnitrix hourglass symbol */}
-      <mesh position={[0, 1.38, 0.205]} scale={0.085} material={holoBright}>
+      <mesh position={[0, 1.38, 0.21]} scale={0.085} material={holoBright}>
         <shapeGeometry args={[hourglass]} />
       </mesh>
     </group>
@@ -365,36 +369,36 @@ function Arm({ side }) {
       <BodyPart sections={ARMS[side]} segments={8} />
 
       {/* big shoulder armor */}
-      <Plate position={[side * 0.44, 1.58, 0]} scale={[0.17, 0.1, 0.15]} rotation={[0, 0, side * -0.35]} />
-      <Plate position={[side * 0.53, 1.5, 0]} scale={[0.09, 0.08, 0.11]} rotation={[0, 0, side * -0.6]} material={holoDarkRock} />
+      <Plate position={[side * 0.46, 1.58, 0]} scale={[0.19, 0.11, 0.16]} rotation={[0, 0, side * -0.35]} />
+      <Plate position={[side * 0.55, 1.5, 0]} scale={[0.1, 0.09, 0.12]} rotation={[0, 0, side * -0.6]} material={holoDarkRock} />
 
       {/* upper arm, elbow and forearm gauntlet */}
-      <Plate position={[side * 0.47, 1.36, 0.06]} scale={[0.09, 0.09, 0.06]} />
+      <Plate position={[side * 0.47, 1.36, 0.08]} scale={[0.1, 0.09, 0.06]} />
       <Plate position={[side * 0.5, 1.2, -0.1]} scale={[0.05, 0.06, 0.09]} material={holoDarkRock} />
-      <Plate position={[side * 0.52, 1.12, 0.07]} scale={[0.11, 0.14, 0.07]} />
-      <Plate position={[side * 0.52, 1.1, -0.07]} scale={[0.1, 0.12, 0.06]} material={holoDarkRock} />
+      <Plate position={[side * 0.52, 1.12, 0.09]} scale={[0.12, 0.15, 0.07]} />
+      <Plate position={[side * 0.52, 1.1, -0.09]} scale={[0.11, 0.13, 0.06]} material={holoDarkRock} />
 
       {/* fist and knuckles */}
-      <Plate position={[side * 0.54, 0.86, 0.02]} scale={[0.085, 0.09, 0.08]} material={holoDarkRock} />
+      <Plate position={[side * 0.54, 0.86, 0.02]} scale={[0.095, 0.1, 0.09]} material={holoDarkRock} />
       {[-1, 0, 1].map((k) => (
-        <Plate key={k} position={[side * 0.54 + k * 0.04, 0.79, 0.07]} scale={[0.025, 0.03, 0.03]} />
+        <Plate key={k} position={[side * 0.54 + k * 0.045, 0.78, 0.08]} scale={[0.028, 0.033, 0.033]} />
       ))}
 
-      {/* flames on shoulder and forearm */}
+      {/* bigger flames on shoulder and forearm */}
       <FlameCluster
-        position={[side * 0.46, 1.62, -0.02]}
+        position={[side * 0.48, 1.62, -0.02]}
         tilt={side * -0.4}
-        width={0.2}
-        height={0.5}
-        tongues={3}
+        width={0.28}
+        height={0.6}
+        tongues={4}
         seed={side * 3 + 10}
         phase={side * 2}
       />
       <FlameCluster
         position={[side * 0.52, 1.0, -0.1]}
         tilt={side * -0.1}
-        width={0.16}
-        height={0.32}
+        width={0.2}
+        height={0.4}
         tongues={3}
         seed={side * 3 + 20}
         phase={side * 3}
@@ -411,26 +415,16 @@ function Leg({ side }) {
       <BodyPart sections={LEGS[side]} segments={8} />
 
       {/* hip, thigh, knee, shin */}
-      <Plate position={[side * 0.24, 0.9, 0]} scale={[0.08, 0.09, 0.12]} rotation={[0, 0, side * -0.3]} />
-      <Plate position={[x, 0.78, 0.125]} scale={[0.1, 0.14, 0.05]} />
-      <Plate position={[x, 0.53, 0.1]} scale={[0.09, 0.08, 0.06]} rotation={[0.2, 0, 0]} material={holoDarkRock} />
-      <Plate position={[x, 0.34, 0.095]} scale={[0.065, 0.13, 0.045]} />
+      <Plate position={[side * 0.3, 0.9, 0]} scale={[0.08, 0.09, 0.12]} rotation={[0, 0, side * -0.3]} />
+      <Plate position={[x, 0.78, 0.145]} scale={[0.11, 0.14, 0.05]} />
+      <Plate position={[x, 0.53, 0.11]} scale={[0.1, 0.08, 0.06]} rotation={[0.2, 0, 0]} material={holoDarkRock} />
+      <Plate position={[x, 0.34, 0.11]} scale={[0.07, 0.13, 0.05]} />
 
       {/* foot and toes */}
-      <Plate position={[x, 0.075, 0.07]} scale={[0.1, 0.065, 0.17]} material={holoDarkRock} />
+      <Plate position={[x, 0.075, 0.08]} scale={[0.12, 0.07, 0.19]} material={holoDarkRock} />
       {[-1, 0, 1].map((k) => (
-        <Plate key={k} position={[x + k * 0.04, 0.05, 0.22]} scale={[0.025, 0.03, 0.04]} />
+        <Plate key={k} position={[x + k * 0.045, 0.05, 0.24]} scale={[0.028, 0.032, 0.045]} />
       ))}
-
-      {/* small ankle flame */}
-      <FlameCluster
-        position={[x, 0.14, -0.08]}
-        width={0.12}
-        height={0.22}
-        tongues={3}
-        seed={side + 30}
-        phase={side * 4}
-      />
     </group>
   );
 }
@@ -472,7 +466,12 @@ export default function Heatblast() {
       </group>
 
       <group ref={head}>
-        <Head />
+        {/* the head is 25% bigger, scaled around the neck */}
+        <group position={[0, 1.7, 0]} scale={1.25}>
+          <group position={[0, -1.7, 0]}>
+            <Head />
+          </group>
+        </group>
         <Crown />
       </group>
 
