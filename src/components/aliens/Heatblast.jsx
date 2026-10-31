@@ -306,29 +306,66 @@ function Head() {
   );
 }
 
-// big flame mane around the head
-function Crown() {
+function Head() {
   return (
     <group>
-      {/* three sheets crossed at the head */}
-      <FlameSheet position={[0, 1.95, 0]} width={0.5} height={0.8} tongues={4} seed={1} phase={0} />
-      <FlameSheet position={[0, 1.95, 0]} rotationY={Math.PI / 3} width={0.5} height={0.7} tongues={4} seed={2} phase={1.3} />
-      <FlameSheet position={[0, 1.95, 0]} rotationY={-Math.PI / 3} width={0.5} height={0.72} tongues={4} seed={3} phase={2.6} />
+      {/* the head is the same glowing green as the body */}
+      <BodyPart sections={HEAD} segments={6} material={holoCore} />
 
-      {/* tall flame behind the head */}
-      <FlameSheet position={[0, 1.93, -0.08]} width={0.45} height={0.95} tongues={3} seed={4} phase={3.9} />
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          {/* dark eye socket */}
+          <Plate
+            position={[s * 0.055, 1.83, 0.105]}
+            scale={[0.052, 0.03, 0.02]}
+            rotation={[0, 0, s * 0.4]}
+            material={holoDarkRock}
+          />
 
-      {/* side flames that make the shape wider */}
-      <FlameSheet position={[-0.14, 1.85, -0.02]} tilt={0.7} width={0.3} height={0.5} tongues={3} seed={5} phase={0.7} />
-      <FlameSheet position={[0.14, 1.85, -0.02]} tilt={-0.7} width={0.3} height={0.5} tongues={3} seed={6} phase={2.1} />
+          {/* bright glowing eye */}
+          <mesh
+            position={[s * 0.055, 1.83, 0.114]}
+            rotation={[0, 0, s * 0.4]}
+            scale={[0.04, 0.014, 0.02]}
+            material={holoBright}
+          >
+            <sphereGeometry args={[1, 12, 8]} />
+          </mesh>
 
-      {/* flames beside the face, so the head looks like it is made of fire */}
-      <FlameSheet position={[-0.16, 1.72, -0.06]} tilt={0.95} width={0.3} height={0.5} tongues={3} seed={9} phase={1.8} />
-      <FlameSheet position={[0.16, 1.72, -0.06]} tilt={-0.95} width={0.3} height={0.5} tongues={3} seed={10} phase={3.2} />
+          {/* heavy brow ridge */}
+          <Plate
+            position={[s * 0.06, 1.885, 0.108]}
+            scale={[0.075, 0.022, 0.04]}
+            rotation={[0, 0, s * 0.4]}
+            material={holoDarkRock}
+          />
 
-      {/* lower back flames */}
-      <FlameSheet position={[-0.1, 1.8, -0.1]} tilt={0.35} width={0.3} height={0.55} tongues={3} seed={7} phase={4.4} />
-      <FlameSheet position={[0.1, 1.8, -0.1]} tilt={-0.35} width={0.3} height={0.55} tongues={3} seed={8} phase={5.2} />
+          {/* cheek bone */}
+          <Plate position={[s * 0.11, 1.77, 0.07]} scale={[0.03, 0.05, 0.04]} material={holoDarkRock} />
+
+          {/* side ear spike */}
+          <Plate position={[s * 0.14, 1.86, -0.01]} scale={[0.035, 0.05, 0.03]} material={holoDarkRock} />
+        </group>
+      ))}
+
+      {/* forehead plate */}
+      <Plate position={[0, 1.92, 0.09]} scale={[0.05, 0.03, 0.04]} material={holoDarkRock} />
+
+      {/* dark open mouth */}
+      <mesh position={[0, 1.745, 0.105]} material={holoDarkRock}>
+        <boxGeometry args={[0.09, 0.03, 0.01]} />
+      </mesh>
+
+      {/* bright teeth, top row and bottom row */}
+      {[-0.03, -0.01, 0.01, 0.03].map((x) => (
+        <group key={x}>
+          <Plate position={[x, 1.757, 0.112]} scale={[0.007, 0.013, 0.007]} material={holoBright} />
+          <Plate position={[x, 1.733, 0.112]} scale={[0.007, 0.013, 0.007]} material={holoBright} />
+        </group>
+      ))}
+
+      {/* chin plate */}
+      <Plate position={[0, 1.69, 0.05]} scale={[0.04, 0.03, 0.04]} material={holoDarkRock} />
     </group>
   );
 }
