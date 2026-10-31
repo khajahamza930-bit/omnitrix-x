@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 // Builds a body part by stacking oval rings from bottom to top.
 // Each section is { x, y, z, rx, rz } = center position and ring size.
@@ -55,7 +56,7 @@ export function createLoft(sections, segments = 10, capEnds = true) {
   return geometry;
 }
 
-// A round flame tongue made from rings (older version, kept for later use).
+// A round flame tongue made from rings (older version, not used right now).
 export function createFlameTongue({
   length = 0.5,
   width = 0.09,
@@ -96,63 +97,97 @@ export function createFlameTongue({
   return geometry;
 }
 
-// A flat flame sheet with several uneven tongues.
+// One flat flame tongue.
+// It is fat at the bottom, bends in an S shape and ends in a soft point.
+function createTongue(baseX, halfWidth, height, lean, wiggle, depth, zShift) {
+  const steps = 14;
+  const leftSide = [];
+  const rightSide = [];
+
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const y = t * height;
+
+    // the middle line bends sideways
+    const centerX = baseX + lean * t * t + Math.sin(t * Math.PI * 2) * wiggle;
+
+    // wide at the bottom, thin at the top
+    const half = halfWidth * Math.pow(1 - t, 0.6);
+
+    leftSide.push(new THREE.Vector2(centerX - half, y));
+    rightSide.push(new THREE.Vector2(centerX + half, y));
+  }
+
+  // draw up the left side, then down the right side
+  const shape = new THREE.Shape();
+  shape.moveTo(leftSide[0].x, leftSide[0].y);
+  for (let i = 1; i <= steps; i++) {
+    shape.lineTo(leftSide[i].x, leftSide[i].y);
+  }
+  for (let i = steps - 1; i >= 0; i--) {
+    shape.lineTo(rightSide[i].x, rightSide[i].y);
+  }
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: depth,
+    bevelEnabled: false,
+  });
+
+  // zShift stops two tongues from fighting over the same space
+  geometry.translate(0, 0, -depth / 2 + zShift);
+  return geometry;
+}
+
+// A flame made from several tongues side by side.
 // width and height are in 3D units. seed changes the shape.
 export function createFlameSheet({
   width = 0.4,
   height = 0.8,
-  tongues = 5,
+  tongues = 4,
   depth = 0.035,
   seed = 1,
 }) {
-  const half = width / 2;
   const step = width / tongues;
-  const shape = new THREE.Shape();
-
-  shape.moveTo(-half, 0);
-  shape.lineTo(-half, height * 0.12);
+  const pieces = [];
 
   for (let i = 0; i < tongues; i++) {
-    const x0 = -half + i * step;
-    const x1 = x0 + step;
+    const baseX = -width / 2 + step * (i + 0.5);
 
     // middle tongues are taller, and each tongue is a bit different
-    const middle = 1 - Math.abs((i + 0.5) / tongues - 0.5) * 1.3;
-    const random = 0.78 + 0.22 * Math.sin(seed * 7.3 + i * 2.1);
-    const h = height * middle * random;
+    const middle = 1 - Math.abs((i + 0.5) / tongues - 0.5) * 1.1;
+    const random = 0.8 + 0.2 * Math.sin(seed * 7.3 + i * 2.1);
+    const tongueHeight = height * middle * random;
 
-    // the tip leans a little to the left or right
-    const lean = Math.sin(seed * 3.1 + i * 1.7) * step * 0.5;
-    const tipX = x0 + step * 0.5 + lean;
+    // outer tongues lean outward, plus a little randomness
+    const lean = baseX * 0.9 + Math.sin(seed * 3.1 + i * 1.7) * step * 0.6;
 
-    const nextValleyY = i === tongues - 1 ? height * 0.1 : h * 0.22 + height * 0.06;
-
-    // left side curves up to the tip, right side curves back down
-    shape.quadraticCurveTo(x0 + step * 0.05, h * 0.6, tipX, h);
-    shape.quadraticCurveTo(tipX + step * 0.3, h * 0.45, x1, nextValleyY);
+    pieces.push(
+      createTongue(baseX, step * 0.65, tongueHeight, lean, step * 0.25, depth, i * 0.003)
+    );
   }
 
-  shape.lineTo(half, 0);
-  shape.lineTo(-half, 0);
+  // join all tongues into one shape
+  const geometry = mergeGeometries(pieces);
+  pieces.forEach((piece) => piece.dispose());
 
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth,
-    bevelEnabled: false,
-    curveSegments: 6,
-  });
-  geometry.translate(0, 0, -depth / 2);
-
-  // dark green at the bottom, bright at the tips
+  // green at the bottom, bright lime at the tips
   const position = geometry.attributes.position;
   const colors = [];
-  const base = new THREE.Color("#2c9a22");
-  const tip = new THREE.Color("#f2ffb4");
+  const bottom = new THREE.Color("#12801a");
+  const middleColor = new THREE.Color("#4fe024");
+  const top = new THREE.Color("#c8ff5a");
   const mix = new THREE.Color();
+
   for (let i = 0; i < position.count; i++) {
     const t = Math.min(1, Math.max(0, position.getY(i) / height));
-    mix.copy(base).lerp(tip, t);
+    if (t < 0.5) {
+      mix.copy(bottom).lerp(middleColor, t * 2);
+    } else {
+      mix.copy(middleColor).lerp(top, (t - 0.5) * 2);
+    }
     colors.push(mix.r, mix.g, mix.b);
   }
+
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
   geometry.computeVertexNormals();
 

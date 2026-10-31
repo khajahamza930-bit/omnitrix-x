@@ -306,25 +306,25 @@ function Head() {
   );
 }
 
-// big, full flame mane around the head
+// big flame mane around the head
 function Crown() {
   return (
     <group>
-      {/* three wide sheets crossed at the head */}
-      <FlameSheet position={[0, 1.95, 0]} width={0.5} height={0.95} tongues={6} seed={1} phase={0} />
-      <FlameSheet position={[0, 1.95, 0]} rotationY={Math.PI / 3} width={0.5} height={0.85} tongues={6} seed={2} phase={1.3} />
-      <FlameSheet position={[0, 1.95, 0]} rotationY={-Math.PI / 3} width={0.5} height={0.88} tongues={6} seed={3} phase={2.6} />
+      {/* three sheets crossed at the head */}
+      <FlameSheet position={[0, 1.95, 0]} width={0.5} height={0.8} tongues={4} seed={1} phase={0} />
+      <FlameSheet position={[0, 1.95, 0]} rotationY={Math.PI / 3} width={0.5} height={0.7} tongues={4} seed={2} phase={1.3} />
+      <FlameSheet position={[0, 1.95, 0]} rotationY={-Math.PI / 3} width={0.5} height={0.72} tongues={4} seed={3} phase={2.6} />
 
-      {/* tallest flame, behind the head */}
-      <FlameSheet position={[0, 1.93, -0.08]} width={0.42} height={1.05} tongues={5} seed={4} phase={3.9} />
+      {/* tall flame behind the head */}
+      <FlameSheet position={[0, 1.93, -0.08]} width={0.45} height={0.95} tongues={3} seed={4} phase={3.9} />
 
-      {/* side flames that widen the silhouette */}
-      <FlameSheet position={[-0.14, 1.85, -0.02]} tilt={0.7} width={0.3} height={0.6} tongues={4} seed={5} phase={0.7} />
-      <FlameSheet position={[0.14, 1.85, -0.02]} tilt={-0.7} width={0.3} height={0.6} tongues={4} seed={6} phase={2.1} />
+      {/* side flames that make the shape wider */}
+      <FlameSheet position={[-0.14, 1.85, -0.02]} tilt={0.7} width={0.3} height={0.5} tongues={3} seed={5} phase={0.7} />
+      <FlameSheet position={[0.14, 1.85, -0.02]} tilt={-0.7} width={0.3} height={0.5} tongues={3} seed={6} phase={2.1} />
 
       {/* lower back flames */}
-      <FlameSheet position={[-0.1, 1.8, -0.1]} tilt={0.35} width={0.28} height={0.7} tongues={4} seed={7} phase={4.4} />
-      <FlameSheet position={[0.1, 1.8, -0.1]} tilt={-0.35} width={0.28} height={0.7} tongues={4} seed={8} phase={5.2} />
+      <FlameSheet position={[-0.1, 1.8, -0.1]} tilt={0.35} width={0.3} height={0.55} tongues={3} seed={7} phase={4.4} />
+      <FlameSheet position={[0.1, 1.8, -0.1]} tilt={-0.35} width={0.3} height={0.55} tongues={3} seed={8} phase={5.2} />
     </group>
   );
 }
