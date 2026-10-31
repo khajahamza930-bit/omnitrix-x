@@ -136,7 +136,7 @@ function Plate({
 }) {
   return (
     <mesh position={position} scale={scale} rotation={rotation} material={material}>
-      <icosahedronGeometry args={[1, 0]} />
+      <dodecahedronGeometry args={[1, 0]} />
     </mesh>
   );
 }
@@ -147,7 +147,7 @@ function Crack({ points }) {
     const curve = new THREE.CatmullRomCurve3(
       points.map((p) => new THREE.Vector3(p[0], p[1], p[2]))
     );
-    return new THREE.TubeGeometry(curve, 14, 0.013, 4, false);
+    return new THREE.TubeGeometry(curve, 14, 0.018, 4, false);
   }, [points]);
 
   return <mesh geometry={geometry} material={holoCrack} />;

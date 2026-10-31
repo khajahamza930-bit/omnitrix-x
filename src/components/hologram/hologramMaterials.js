@@ -93,23 +93,23 @@ function makeHoloMaterial({ color, rim, opacity, vertexColors = false, doubleSid
 
 // glowing body, mostly see-through
 export const holoCore = makeHoloMaterial({
-  color: "#4fe05a",
+  color: "#6bf06a",
   rim: "#c8ffd0",
-  opacity: 0.55,
+  opacity: 0.5,
 });
 
 // rock plates, darker and less see-through
 export const holoRock = makeHoloMaterial({
-  color: "#0f6b2e",
+  color: "#0a5a24",
   rim: "#7dff9a",
-  opacity: 0.85,
+  opacity: 0.92,
 });
 
 // even darker plates
 export const holoDarkRock = makeHoloMaterial({
-  color: "#0a4a22",
+  color: "#063a1a",
   rim: "#5cff8a",
-  opacity: 0.85,
+  opacity: 0.92,
 });
 
 // flames use the color gradient from the geometry
