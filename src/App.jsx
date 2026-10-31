@@ -815,7 +815,7 @@ function App() {
       <section className="dashboard">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">ALIEN DATABASE / 001—010</p>
+            <p className="eyebrow">ALIEN DATABASE / 001—{String(aliens.length).padStart(3, "0")}</p>
             <h2>
               Choose Your <span>Alien</span>
             </h2>
@@ -832,7 +832,7 @@ function App() {
             <div className="dial-label">
               <span>OMNITRIX ALIEN SELECTOR</span>
               <span className="dial-coordinates">
-                10 / {String(selectedIndex + 1).padStart(2, "0")}
+                {String(selectedIndex + 1).padStart(2, "0")} / {String(aliens.length).padStart(2, "0")}
               </span>
             </div>
 
