@@ -147,7 +147,7 @@ function Crack({ points }) {
     const curve = new THREE.CatmullRomCurve3(
       points.map((p) => new THREE.Vector3(p[0], p[1], p[2]))
     );
-    return new THREE.TubeGeometry(curve, 14, 0.007, 4, false);
+    return new THREE.TubeGeometry(curve, 14, 0.013, 4, false);
   }, [points]);
 
   return <mesh geometry={geometry} material={holoCrack} />;
@@ -160,7 +160,7 @@ function FlameSheet({
   tilt = 0,
   width = 0.3,
   height = 0.7,
-  tongues = 5,
+  tongues = 4,
   seed = 1,
   phase = 0,
 }) {
@@ -322,6 +322,10 @@ function Crown() {
       <FlameSheet position={[-0.14, 1.85, -0.02]} tilt={0.7} width={0.3} height={0.5} tongues={3} seed={5} phase={0.7} />
       <FlameSheet position={[0.14, 1.85, -0.02]} tilt={-0.7} width={0.3} height={0.5} tongues={3} seed={6} phase={2.1} />
 
+      {/* flames beside the face, so the head looks like it is made of fire */}
+      <FlameSheet position={[-0.16, 1.72, -0.06]} tilt={0.95} width={0.3} height={0.5} tongues={3} seed={9} phase={1.8} />
+      <FlameSheet position={[0.16, 1.72, -0.06]} tilt={-0.95} width={0.3} height={0.5} tongues={3} seed={10} phase={3.2} />
+
       {/* lower back flames */}
       <FlameSheet position={[-0.1, 1.8, -0.1]} tilt={0.35} width={0.3} height={0.55} tongues={3} seed={7} phase={4.4} />
       <FlameSheet position={[0.1, 1.8, -0.1]} tilt={-0.35} width={0.3} height={0.55} tongues={3} seed={8} phase={5.2} />
@@ -384,7 +388,7 @@ function Arm({ side }) {
         <Plate key={k} position={[side * 0.54 + k * 0.045, 0.78, 0.08]} scale={[0.028, 0.033, 0.033]} />
       ))}
 
-      {/* bigger flames on shoulder and forearm */}
+      {/* flames on shoulder and forearm */}
       <FlameCluster
         position={[side * 0.48, 1.62, -0.02]}
         tilt={side * -0.4}
@@ -459,30 +463,33 @@ export default function Heatblast() {
 
   return (
     <group ref={alien} scale={0.8}>
-      <group ref={body}>
-        <BodyPart sections={TORSO} segments={10} />
-        <BodyPart sections={NECK} segments={8} />
-        <ChestArmor />
+      {/* body, arms and legs are stretched front to back, so he is not flat from the side */}
+      <group scale={[1, 1, 1.35]}>
+        <group ref={body}>
+          <BodyPart sections={TORSO} segments={10} />
+          <BodyPart sections={NECK} segments={8} />
+          <ChestArmor />
+        </group>
+
+        <Arm side={-1} />
+        <Arm side={1} />
+        <Leg side={-1} />
+        <Leg side={1} />
+
+        {CRACKS.map((points, i) => (
+          <Crack key={i} points={points} />
+        ))}
       </group>
 
       <group ref={head}>
-        {/* the head is 25% bigger, scaled around the neck */}
-        <group position={[0, 1.7, 0]} scale={1.25}>
+        {/* the head is 50% bigger, scaled around the neck */}
+        <group position={[0, 1.7, 0]} scale={1.5}>
           <group position={[0, -1.7, 0]}>
             <Head />
           </group>
         </group>
         <Crown />
       </group>
-
-      <Arm side={-1} />
-      <Arm side={1} />
-      <Leg side={-1} />
-      <Leg side={1} />
-
-      {CRACKS.map((points, i) => (
-        <Crack key={i} points={points} />
-      ))}
 
       <Embers />
     </group>

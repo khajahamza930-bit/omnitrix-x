@@ -155,7 +155,7 @@ export function createFlameSheet({
 
     // middle tongues are taller, and each tongue is a bit different
     const middle = 1 - Math.abs((i + 0.5) / tongues - 0.5) * 1.1;
-    const random = 0.8 + 0.2 * Math.sin(seed * 7.3 + i * 2.1);
+    const random = 0.65 + 0.35 * (0.5 + 0.5 * Math.sin(seed * 7.3 + i * 2.1));
     const tongueHeight = height * middle * random;
 
     // outer tongues lean outward, plus a little randomness

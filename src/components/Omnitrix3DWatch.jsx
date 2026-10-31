@@ -56,7 +56,7 @@ function WatchBody() {
       <MetalRing radius={0.94} tube={0.018} color="#20a849" emissive="#00ff33" />
 
       {/* Omnitrix symbol */}
-      <mesh position={[0, 0.32, 0]}>
+      <mesh position={[0, 0.305, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.31, 6]} />
         <meshBasicMaterial color="#9bff42" />
       </mesh>
