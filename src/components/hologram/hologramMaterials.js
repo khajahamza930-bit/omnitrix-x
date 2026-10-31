@@ -64,7 +64,7 @@ const fragmentShader = `
     // tiny flicker
     float flicker = 0.95 + 0.05 * sin(uTime * 25.0);
 
-    float alpha = (uOpacity + rim * 0.35) * lines * flicker;
+   float alpha = (uOpacity + 0.15 + rim * 0.35) * lines * flicker;
 
     gl_FragColor = vec4(color * lines, alpha);
 
