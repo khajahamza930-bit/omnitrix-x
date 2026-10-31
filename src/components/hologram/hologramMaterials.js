@@ -1,53 +1,134 @@
 import * as THREE from "three";
+import { useFrame } from "@react-three/fiber";
 
-// Green Omnitrix hologram materials.
-// Every alien uses these, so they all get the same look.
-// Idea: green body + dark armor + bright cracks, so the shape stays readable.
+// Hologram materials for all aliens.
+// A hologram here means: see-through, bright glowing edges,
+// faint moving lines and a tiny flicker.
 
-// glowing body under the armor
-export const holoCore = new THREE.MeshStandardMaterial({
-  color: "#7fe83a",
-  emissive: "#2fd90a",
-  emissiveIntensity: 0.45,
-  roughness: 0.45,
-  flatShading: true,
+// All materials share this time value, so they animate together.
+export const holoTime = { value: 0 };
+
+// Call this once inside the 3D scene to keep the time updated.
+export function useHologramClock() {
+  useFrame((state) => {
+    holoTime.value = state.clock.elapsedTime;
+  });
+}
+
+// ---------- shaders (small programs that run on the graphics card) ----------
+
+const vertexShader = `
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  varying float vWorldY;
+  varying vec3 vVertexColor;
+
+  void main() {
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+
+    vNormal = normalize(normalMatrix * normal);
+    vViewDir = normalize(-viewPosition.xyz);
+    vWorldY = (modelMatrix * vec4(position, 1.0)).y;
+
+    #ifdef USE_COLOR
+      vVertexColor = color;
+    #else
+      vVertexColor = vec3(1.0);
+    #endif
+
+    gl_Position = projectionMatrix * viewPosition;
+  }
+`;
+
+const fragmentShader = `
+  uniform float uTime;
+  uniform vec3 uColor;
+  uniform vec3 uRim;
+  uniform float uOpacity;
+
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  varying float vWorldY;
+  varying vec3 vVertexColor;
+
+  void main() {
+    // edges of the shape (facing away from the camera) glow brighter
+    float rim = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewDir))), 2.0);
+
+    vec3 base = uColor * vVertexColor;
+    vec3 color = mix(base, uRim, rim);
+
+    // thin lines that slowly move upward
+    float lines = 0.88 + 0.12 * sin(vWorldY * 80.0 - uTime * 2.0);
+
+    // tiny flicker
+    float flicker = 0.95 + 0.05 * sin(uTime * 25.0);
+
+    float alpha = (uOpacity + rim * 0.35) * lines * flicker;
+
+    gl_FragColor = vec4(color * lines, alpha);
+
+    #include <colorspace_fragment>
+  }
+`;
+
+// makes one hologram material
+function makeHoloMaterial({ color, rim, opacity, vertexColors = false, doubleSided = false }) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: holoTime,
+      uColor: { value: new THREE.Color(color) },
+      uRim: { value: new THREE.Color(rim) },
+      uOpacity: { value: opacity },
+    },
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
+    transparent: true,
+    vertexColors: vertexColors,
+    side: doubleSided ? THREE.DoubleSide : THREE.FrontSide,
+  });
+}
+
+// ---------- the materials the aliens use ----------
+
+// glowing body, mostly see-through
+export const holoCore = makeHoloMaterial({
+  color: "#4fe05a",
+  rim: "#c8ffd0",
+  opacity: 0.55,
 });
 
-// main armor / rock plates (dark, so they stand out from the body)
-export const holoRock = new THREE.MeshStandardMaterial({
-  color: "#0b4f22",
-  emissive: "#03300c",
-  emissiveIntensity: 0.5,
-  roughness: 0.6,
-  metalness: 0.15,
-  flatShading: true,
+// rock plates, darker and less see-through
+export const holoRock = makeHoloMaterial({
+  color: "#0f6b2e",
+  rim: "#7dff9a",
+  opacity: 0.85,
 });
 
 // even darker plates
-export const holoDarkRock = new THREE.MeshStandardMaterial({
-  color: "#05301a",
-  emissive: "#022a0c",
-  emissiveIntensity: 0.5,
-  roughness: 0.65,
-  metalness: 0.2,
-  flatShading: true,
+export const holoDarkRock = makeHoloMaterial({
+  color: "#0a4a22",
+  rim: "#5cff8a",
+  opacity: 0.85,
 });
 
-// flames use vertex colors (the gradient comes from the geometry)
-export const holoFlame = new THREE.MeshStandardMaterial({
+// flames use the color gradient from the geometry
+export const holoFlame = makeHoloMaterial({
+  color: "#ffffff",
+  rim: "#eaffc8",
+  opacity: 0.6,
   vertexColors: true,
-  emissive: "#46f000",
-  emissiveIntensity: 0.9,
-  roughness: 0.4,
-  side: THREE.DoubleSide,
+  doubleSided: true,
 });
 
-// eyes, mouth, chest symbol
+// eyes, teeth, chest symbol
 export const holoBright = new THREE.MeshBasicMaterial({
   color: "#f0ffc8",
+  toneMapped: false,
 });
 
-// glowing magma cracks
+// glowing cracks
 export const holoCrack = new THREE.MeshBasicMaterial({
-  color: "#e8ff80",
+  color: "#f4ffa0",
+  toneMapped: false,
 });

@@ -1,5 +1,5 @@
-import React, { Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import React, { Suspense, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   ContactShadows,
   Environment,
@@ -7,9 +7,13 @@ import {
   Html,
   OrbitControls,
 } from "@react-three/drei";
-import { DoubleSide } from "three";
+import { AdditiveBlending, DoubleSide } from "three";
 
 import alienModels from "./aliens/index";
+import { useHologramClock } from "./hologram/hologramMaterials";
+
+// the height of the watch screen, the alien stands here
+const PLATFORM_TOP = -0.55;
 
 // ---------- metal rings ----------
 
@@ -45,17 +49,23 @@ function WatchBody() {
         <meshStandardMaterial color="#a5b4ae" metalness={1} roughness={0.2} />
       </mesh>
 
-      {/* dark screen */}
+      {/* glowing green screen */}
       <mesh position={[0, 0.27, 0]}>
         <cylinderGeometry args={[1.16, 1.16, 0.055, 96]} />
-        <meshStandardMaterial color="#07130d" metalness={0.5} roughness={0.25} />
+        <meshStandardMaterial
+          color="#1a9a40"
+          emissive="#2cff5a"
+          emissiveIntensity={1.1}
+          metalness={0.3}
+          roughness={0.4}
+        />
       </mesh>
 
       {/* green rings */}
       <MetalRing radius={1.13} tube={0.055} color="#67ff80" emissive="#00ff33" />
       <MetalRing radius={0.94} tube={0.018} color="#20a849" emissive="#00ff33" />
 
-      {/* Omnitrix symbol */}
+      {/* Omnitrix symbol, lying flat on the screen */}
       <mesh position={[0, 0.305, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.31, 6]} />
         <meshBasicMaterial color="#9bff42" />
@@ -98,12 +108,6 @@ function EnergyBeam() {
         />
       </mesh>
 
-      {/* bottom ring */}
-      <mesh position={[0, -1.3, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.9, 0.018, 12, 64]} />
-        <meshBasicMaterial color="#42ff80" />
-      </mesh>
-
       {/* top ring */}
       <mesh position={[0, 1.3, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.75, 0.018, 12, 64]} />
@@ -113,10 +117,75 @@ function EnergyBeam() {
   );
 }
 
-// ---------- the alien on top of the watch ----------
+// ---------- glowing light disc under the alien ----------
 
-// the height of the watch screen, the alien stands here
-const PLATFORM_TOP = -0.55;
+function HologramBase() {
+  return (
+    <group position={[0, PLATFORM_TOP + 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* big soft glow */}
+      <mesh>
+        <circleGeometry args={[0.95, 64]} />
+        <meshBasicMaterial
+          color="#4dff7a"
+          transparent
+          opacity={0.35}
+          blending={AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* brighter middle */}
+      <mesh position={[0, 0, 0.005]}>
+        <circleGeometry args={[0.55, 64]} />
+        <meshBasicMaterial
+          color="#9dffb4"
+          transparent
+          opacity={0.3}
+          blending={AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+// ---------- thin lines of light that swirl around the alien ----------
+
+function SwirlRing({ radius, speed, tilt, height }) {
+  const ring = useRef();
+
+  useFrame((state) => {
+    if (!ring.current) return;
+    ring.current.rotation.z = state.clock.elapsedTime * speed;
+  });
+
+  return (
+    <group position={[0, PLATFORM_TOP + height, 0]} rotation={tilt}>
+      <mesh ref={ring}>
+        <torusGeometry args={[radius, 0.01, 8, 80, Math.PI * 1.3]} />
+        <meshBasicMaterial
+          color="#8dffa8"
+          transparent
+          opacity={0.7}
+          blending={AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function EnergySwirl() {
+  return (
+    <group>
+      <SwirlRing radius={0.8} speed={0.9} tilt={[Math.PI / 2.3, 0, 0.3]} height={0.7} />
+      <SwirlRing radius={0.65} speed={-1.2} tilt={[Math.PI / 2.6, 0, -0.4]} height={1.2} />
+      <SwirlRing radius={0.55} speed={1.5} tilt={[Math.PI / 2.2, 0, 0.1]} height={1.7} />
+    </group>
+  );
+}
+
+// ---------- the alien on top of the watch ----------
 
 // shown when an alien does not have a 3D model yet
 function ComingSoon({ alien }) {
@@ -167,6 +236,9 @@ function HologramDisplay({ alien }) {
 // ---------- the whole scene ----------
 
 function WatchScene({ alien }) {
+  // keeps the hologram time moving
+  useHologramClock();
+
   return (
     <>
       {/* background */}
@@ -179,7 +251,9 @@ function WatchScene({ alien }) {
       <pointLight position={[-3, 1, 2]} intensity={1.2} color="#1bff8a" />
 
       <WatchBody />
+      <HologramBase />
       <EnergyBeam />
+      <EnergySwirl />
 
       <Suspense fallback={null}>
         <HologramDisplay alien={alien} />
