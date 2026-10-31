@@ -64,7 +64,7 @@ const fragmentShader = `
     // tiny flicker
     float flicker = 0.95 + 0.05 * sin(uTime * 25.0);
 
-   float alpha = (uOpacity + 0.15 + rim * 0.35) * lines * flicker;
+    float alpha = (uOpacity + 0.15 + rim * 0.35) * lines * flicker;
 
     gl_FragColor = vec4(color * lines, alpha);
 
@@ -116,7 +116,7 @@ export const holoDarkRock = makeHoloMaterial({
 export const holoFlame = makeHoloMaterial({
   color: "#ffffff",
   rim: "#eaffc8",
-  opacity: 0.6,
+  opacity: 0.75,
   vertexColors: true,
   doubleSided: true,
 });

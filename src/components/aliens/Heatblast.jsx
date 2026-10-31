@@ -208,7 +208,7 @@ function FlameCluster({ position, tilt = 0, width, height, tongues, seed, phase 
   );
 }
 
-// small floating sparks
+const pseudoRandom = (n) => Math.sin(n * 12.9898) * 43758.5453 - Math.floor(Math.sin(n * 12.9898) * 43758.5453); // repeatable number from 0 to 1
 function Embers() {
   const points = useRef();
 
@@ -217,10 +217,10 @@ function Embers() {
     const positions = new Float32Array(count * 3);
     const speeds = new Float32Array(count);
     for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 1.0;
-      positions[i * 3 + 1] = Math.random() * 2.4;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 0.6;
-      speeds[i] = 0.15 + Math.random() * 0.25;
+      positions[i * 3] = (pseudoRandom(i) - 0.5) * 1.0;
+      positions[i * 3 + 1] = pseudoRandom(i + 100) * 2.4;
+      positions[i * 3 + 2] = (pseudoRandom(i + 200) - 0.5) * 0.6;
+      speeds[i] = 0.15 + pseudoRandom(i + 300) * 0.25;
     }
     return { positions, speeds, count };
   }, []);

@@ -128,7 +128,7 @@ function HologramBase() {
         <meshBasicMaterial
           color="#4dff7a"
           transparent
-          opacity={0.35}
+          opacity={0.16}
           blending={AdditiveBlending}
           depthWrite={false}
         />
@@ -140,7 +140,7 @@ function HologramBase() {
         <meshBasicMaterial
           color="#9dffb4"
           transparent
-          opacity={0.3}
+          opacity={0.1}
           blending={AdditiveBlending}
           depthWrite={false}
         />
