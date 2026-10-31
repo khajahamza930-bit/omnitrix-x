@@ -257,58 +257,6 @@ function Embers() {
 function Head() {
   return (
     <group>
-      <BodyPart sections={HEAD} segments={6} material={holoRock} />
-
-      {[-1, 1].map((s) => (
-        <group key={s}>
-          {/* glowing slanted eye (angry look) */}
-          <mesh
-            position={[s * 0.055, 1.83, 0.105]}
-            rotation={[0, 0, s * 0.4]}
-            scale={[0.04, 0.014, 0.02]}
-            material={holoBright}
-          >
-            <sphereGeometry args={[1, 12, 8]} />
-          </mesh>
-
-          {/* brow ridge */}
-          <Plate
-            position={[s * 0.06, 1.88, 0.105]}
-            scale={[0.07, 0.02, 0.04]}
-            rotation={[0, 0, s * 0.35]}
-            material={holoDarkRock}
-          />
-
-          {/* cheek bone */}
-          <Plate position={[s * 0.11, 1.77, 0.07]} scale={[0.03, 0.05, 0.04]} material={holoDarkRock} />
-
-          {/* side ear spike */}
-          <Plate position={[s * 0.14, 1.86, -0.01]} scale={[0.035, 0.05, 0.03]} />
-        </group>
-      ))}
-
-      {/* mouth: one glowing line with two small teeth */}
-      <mesh position={[0, 1.745, 0.1]} material={holoBright}>
-        <boxGeometry args={[0.075, 0.008, 0.01]} />
-      </mesh>
-      {[-1, 1].map((s) => (
-        <Plate
-          key={s}
-          position={[s * 0.025, 1.73, 0.1]}
-          scale={[0.008, 0.014, 0.008]}
-          material={holoBright}
-        />
-      ))}
-
-      {/* chin plate */}
-      <Plate position={[0, 1.69, 0.05]} scale={[0.04, 0.03, 0.04]} material={holoDarkRock} />
-    </group>
-  );
-}
-
-function Head() {
-  return (
-    <group>
       {/* the head is the same glowing green as the body */}
       <BodyPart sections={HEAD} segments={6} material={holoCore} />
 
@@ -366,6 +314,33 @@ function Head() {
 
       {/* chin plate */}
       <Plate position={[0, 1.69, 0.05]} scale={[0.04, 0.03, 0.04]} material={holoDarkRock} />
+    </group>
+  );
+}
+
+// big flame mane around the head
+function Crown() {
+  return (
+    <group>
+      {/* three sheets crossed at the head */}
+      <FlameSheet position={[0, 1.95, 0]} width={0.5} height={0.8} tongues={4} seed={1} phase={0} />
+      <FlameSheet position={[0, 1.95, 0]} rotationY={Math.PI / 3} width={0.5} height={0.7} tongues={4} seed={2} phase={1.3} />
+      <FlameSheet position={[0, 1.95, 0]} rotationY={-Math.PI / 3} width={0.5} height={0.72} tongues={4} seed={3} phase={2.6} />
+
+      {/* tall flame behind the head */}
+      <FlameSheet position={[0, 1.93, -0.08]} width={0.45} height={0.95} tongues={3} seed={4} phase={3.9} />
+
+      {/* side flames that make the shape wider */}
+      <FlameSheet position={[-0.14, 1.85, -0.02]} tilt={0.7} width={0.3} height={0.5} tongues={3} seed={5} phase={0.7} />
+      <FlameSheet position={[0.14, 1.85, -0.02]} tilt={-0.7} width={0.3} height={0.5} tongues={3} seed={6} phase={2.1} />
+
+      {/* flames beside the face, so the head looks like it is made of fire */}
+      <FlameSheet position={[-0.16, 1.72, -0.06]} tilt={0.95} width={0.3} height={0.5} tongues={3} seed={9} phase={1.8} />
+      <FlameSheet position={[0.16, 1.72, -0.06]} tilt={-0.95} width={0.3} height={0.5} tongues={3} seed={10} phase={3.2} />
+
+      {/* lower back flames */}
+      <FlameSheet position={[-0.1, 1.8, -0.1]} tilt={0.35} width={0.3} height={0.55} tongues={3} seed={7} phase={4.4} />
+      <FlameSheet position={[0.1, 1.8, -0.1]} tilt={-0.35} width={0.3} height={0.55} tongues={3} seed={8} phase={5.2} />
     </group>
   );
 }
