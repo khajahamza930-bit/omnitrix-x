@@ -132,3 +132,9 @@ export const holoCrack = new THREE.MeshBasicMaterial({
   color: "#f4ffa0",
   toneMapped: false,
 });
+// bright glassy crystal, used by Diamondhead
+export const holoCrystal = makeHoloMaterial({
+  color: "#5fe8b4",
+  rim: "#e0fff0",
+  opacity: 0.55,
+});
