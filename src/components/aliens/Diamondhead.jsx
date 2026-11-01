@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 
 import { sec, BodyPart, Plate, OmnitrixSymbol } from "./parts";
 import { holoCore, holoDarkRock, holoBright, holoCrystal } from "../hologram/hologramMaterials";
@@ -12,11 +13,11 @@ import { holoCore, holoDarkRock, holoBright, holoCrystal } from "../hologram/hol
 
 // body rows: [height, half width, half depth]
 const TORSO_ROWS = [
-  [0.93, 0.2, 0.12],
-  [1.15, 0.17, 0.11],
-  [1.45, 0.26, 0.14],
-  [1.66, 0.28, 0.13],
-  [1.74, 0.1, 0.08],
+  [0.93, 0.22, 0.13],
+  [1.15, 0.2, 0.125],
+  [1.45, 0.33, 0.17],
+  [1.66, 0.35, 0.16],
+  [1.74, 0.11, 0.09],
 ];
 
 // one half of the body. side -1 is the dark half, side 1 is the light half
@@ -41,6 +42,51 @@ function makeLeg(s) {
 // made once, so React does not rebuild them
 const TORSO = { "-1": makeTorsoHalf(-1), "1": makeTorsoHalf(1) };
 const LEGS = { "-1": makeLeg(-1), "1": makeLeg(1) };
+
+// The outline of one arm, measured from the reference picture.
+// Each point is [out, up]: out = how far from the middle of the body, up = height.
+// [0, 0] is the shoulder. The arm goes all the way down to the claws.
+const ARM_OUTLINE = [
+  [-0.19, 0.105], // top, next to the neck
+  [0.09, 0.125], // top of the shoulder block
+  [0.16, -0.02], // outer corner of the shoulder
+  [0.14, -0.19], // outer upper arm
+  [0.26, -0.4], // forearm gets wide
+  [0.245, -0.82], // outer forearm
+  [0.19, -0.95], // wrist, outside
+  [0.12, -1.0], // bottom of the hand, outside
+  [-0.02, -0.97], // bottom of the hand, inside
+  [-0.09, -0.86], // inner hand
+  [-0.14, -0.65], // inner forearm
+  [-0.13, -0.38], // inner forearm, upper part
+  [-0.12, -0.2], // inner upper arm
+  [-0.14, -0.05], // under the shoulder
+];
+
+// turns the outline into a solid crystal shape with flat, chamfered edges
+function makeArmGeometry(side) {
+  const shape = new THREE.Shape();
+  ARM_OUTLINE.forEach(([out, up], i) => {
+    if (i === 0) {
+      shape.moveTo(side * out, up);
+    } else {
+      shape.lineTo(side * out, up);
+    }
+  });
+  shape.closePath();
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.16,
+    bevelEnabled: true,
+    bevelThickness: 0.05,
+    bevelSize: 0.03,
+    bevelSegments: 1,
+  });
+
+  // move it back so it is centered on the shoulder
+  geometry.translate(0, 0, -0.08);
+  return geometry;
+}
 
 // ---------- small crystal parts ----------
 
@@ -73,13 +119,13 @@ function Body() {
       <BodyPart sections={NECK} segments={8} material={holoCore} />
 
       {/* Omnitrix symbol high on the right chest: dark disc, bright ring, hourglass */}
-      <mesh position={[0.17, 1.52, 0.135]} material={holoDarkRock}>
+      <mesh position={[0.17, 1.52, 0.178]} material={holoDarkRock}>
         <circleGeometry args={[0.07, 20]} />
       </mesh>
-      <mesh position={[0.17, 1.52, 0.138]} material={holoBright}>
+      <mesh position={[0.17, 1.52, 0.181]} material={holoBright}>
         <torusGeometry args={[0.07, 0.008, 8, 24]} />
       </mesh>
-      <OmnitrixSymbol position={[0.17, 1.52, 0.142]} size={0.1} />
+      <OmnitrixSymbol position={[0.17, 1.52, 0.185]} size={0.1} />
     </group>
   );
 }
@@ -148,43 +194,38 @@ function Leg({ side }) {
 // one huge crystal arm. The group is at the shoulder, and the arm hangs down from it.
 function Arm({ side, groupRef }) {
   const s = side;
+  const geometry = useMemo(() => makeArmGeometry(s), [s]);
 
   return (
-    <group ref={groupRef} position={[s * 0.42, 1.5, 0]} rotation={[0, 0, s * 0.05]}>
-      {/* big shoulder block with a smaller cap on top */}
-      <Plate position={[s * 0.05, 0.0, 0]} scale={[0.19, 0.19, 0.17]} rotation={[0, 0, s * -0.25]} material={holoCrystal} />
-      <Plate position={[s * 0.03, 0.17, 0]} scale={[0.14, 0.07, 0.14]} rotation={[0, 0, s * -0.3]} material={holoCrystal} />
+    <group ref={groupRef} position={[s * 0.49, 1.6, 0]} rotation={[0, 0, s * 0.04]}>
+      {/* the solid arm */}
+      <mesh geometry={geometry} material={holoCrystal} />
 
-      {/* upper arm and elbow */}
-      <Plate position={[s * 0.07, -0.2, 0]} scale={[0.15, 0.13, 0.14]} material={holoCrystal} />
-      <Plate position={[s * 0.08, -0.33, -0.04]} scale={[0.12, 0.06, 0.11]} material={holoCrystal} />
-
-      {/* forearm: very heavy, widest near the hand */}
-      <Plate position={[s * 0.1, -0.58, 0]} scale={[0.19, 0.25, 0.16]} rotation={[0, 0, s * 0.04]} material={holoCrystal} />
-      <Plate position={[s * 0.1, -0.72, 0.01]} scale={[0.21, 0.17, 0.17]} material={holoCrystal} />
-
-      {/* hand */}
-      <Plate position={[s * 0.1, -0.86, 0.02]} scale={[0.13, 0.08, 0.11]} material={holoCrystal} />
+      {/* raised crystal ridges on the front, so the light catches facets */}
+      <Shard position={[s * 0.03, 0.03, 0.12]} scale={[0.1, 0.06, 0.05]} rotation={[0, 0, s * 0.3]} />
+      <Shard position={[s * 0.02, -0.2, 0.12]} scale={[0.07, 0.1, 0.04]} />
+      <Shard position={[s * 0.07, -0.55, 0.13]} scale={[0.09, 0.3, 0.05]} />
+      <Shard position={[s * 0.08, -0.8, 0.13]} scale={[0.08, 0.14, 0.05]} />
 
       {/* two long claws pointing down */}
-      {[-1, 1].map((k) => (
+      {[0.12, 0.02].map((out) => (
         <mesh
-          key={k}
-          position={[s * 0.1 + k * 0.06, -0.97, 0.05]}
-          rotation={[Math.PI, 0, s * 0.15]}
+          key={out}
+          position={[s * out, -1.06, 0]}
+          rotation={[Math.PI, 0, 0]}
           material={holoCrystal}
         >
-          <coneGeometry args={[0.04, 0.16, 4]} />
+          <coneGeometry args={[0.035, 0.16, 4]} />
         </mesh>
       ))}
 
       {/* thumb, pointing down and inwards */}
       <mesh
-        position={[s * -0.02, -0.88, 0.09]}
+        position={[s * -0.1, -0.95, 0]}
         rotation={[Math.PI, 0, s * 0.5]}
         material={holoCrystal}
       >
-        <coneGeometry args={[0.035, 0.13, 4]} />
+        <coneGeometry args={[0.03, 0.13, 4]} />
       </mesh>
     </group>
   );
