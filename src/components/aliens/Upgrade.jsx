@@ -1,9 +1,9 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-import { sec, BodyPart, OmnitrixSymbol } from "./parts";
-import { holoCore, holoDarkRock, holoCrack } from "../hologram/hologramMaterials";
+import { sec, BodyPart, OmnitrixSymbol, wireMaterial } from "./parts";
+import { holoCore, holoDarkRock, holoCrack, holoPulse } from "../hologram/hologramMaterials";
 import { surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";
 
 // Upgrade, built from the reference picture.
@@ -46,7 +46,7 @@ function makeLeg(s) {
   ];
 }
 
-// very long arms that lean a little outwards
+// very long arms that lean outwards, away from the body
 function makeArm(s) {
   const rows = [
     sec(s * 0.62, 0.66, 0, 0.085, 0.07),
@@ -133,6 +133,15 @@ const TORSO_HALF_LINES = [
   [[1.16, 0.0], [1.16, 0.28], [1.06, 0.28], [1.06, 0.5]],
 ];
 
+// lines on the BACK of the torso. The picture only shows the front,
+// so these are my estimate, a simple version of the front pattern
+const TORSO_BACK_LINES = [
+  [[1.64, Math.PI], [0.9, Math.PI]],
+  [[1.5, Math.PI], [1.5, Math.PI + 0.5], [1.36, Math.PI + 0.5], [1.36, Math.PI + 0.9]],
+  [[1.5, Math.PI], [1.5, Math.PI - 0.5], [1.36, Math.PI - 0.5], [1.36, Math.PI - 0.9]],
+  [[1.2, Math.PI + 0.5], [1.2, Math.PI - 0.5]],
+];
+
 // lines on one arm. A positive angle is towards the outside of the arm
 const ARM_LINES = [
   [[1.5, 0.0], [1.5, 0.5], [1.38, 0.5], [1.38, -0.3], [1.24, -0.3], [1.24, 0.4], [1.12, 0.4]],
@@ -158,6 +167,7 @@ const HEAD_LINES_GEOMETRY = makeLinesGeometry(HEAD_LINES.map((line) => surfaceLi
 const TORSO_LINES_GEOMETRY = makeLinesGeometry([
   ...TORSO_CENTER_LINES.map((line) => surfaceLine(TORSO, line)),
   ...[-1, 1].flatMap((s) => TORSO_HALF_LINES.map((line) => surfaceLine(TORSO, mirrorLine(line, s)))),
+  ...TORSO_BACK_LINES.map((line) => surfaceLine(TORSO, line)),
 ]);
 
 const ARM_LINES_GEOMETRY = {
@@ -175,7 +185,7 @@ const LEG_LINES_GEOMETRY = {
 function Body() {
   return (
     <group>
-      <BodyPart sections={TORSO} segments={12} material={holoCore} />
+      <BodyPart sections={TORSO} segments={12} material={holoCore} wire />
       <mesh geometry={TORSO_LINES_GEOMETRY} material={holoDarkRock} />
 
       {/* Omnitrix emblem on the upper chest: dark disc, bright ring, hourglass */}
@@ -195,8 +205,8 @@ function Head({ groupRef }) {
   return (
     <group ref={groupRef} position={[0, 1.62, 0]}>
       <group position={[0, -1.62, 0]}>
-        <BodyPart sections={HEAD} segments={12} material={holoDarkRock} />
-        <mesh geometry={HEAD_LINES_GEOMETRY} material={holoCrack} />
+        <BodyPart sections={HEAD} segments={12} material={holoDarkRock} wire />
+        <mesh geometry={HEAD_LINES_GEOMETRY} material={holoPulse} />
 
         {/* small ring at the very tip of the head */}
         <mesh position={[0.08, 1.95, 0.075]} material={holoCrack}>
@@ -213,6 +223,7 @@ function Hand({ side }) {
   return (
     <group position={[side * 0.62, 0.64, 0]} rotation={[0, 0, side * 0.25]}>
       <mesh geometry={HAND_GEOMETRY} material={material} />
+      <mesh geometry={HAND_GEOMETRY} material={wireMaterial} />
     </group>
   );
 }
@@ -220,12 +231,12 @@ function Hand({ side }) {
 // the group turns around the shoulder, so the whole arm swings like a pendulum
 function Arm({ side, groupRef }) {
   const material = side === -1 ? holoDarkRock : holoCore;
-  const lineMaterial = side === -1 ? holoCrack : holoDarkRock;
+  const lineMaterial = side === -1 ? holoPulse : holoDarkRock;
 
   return (
     <group ref={groupRef} position={[side * 0.36, 1.5, 0]}>
       <group position={[side * -0.36, -1.5, 0]}>
-        <BodyPart sections={ARMS[side]} segments={12} material={material} />
+        <BodyPart sections={ARMS[side]} segments={12} material={material} wire />
         <Hand side={side} />
         <mesh geometry={ARM_LINES_GEOMETRY[side]} material={lineMaterial} />
       </group>
@@ -238,7 +249,7 @@ function Leg({ side }) {
 
   return (
     <group>
-      <BodyPart sections={LEGS[side]} segments={12} material={holoCore} />
+      <BodyPart sections={LEGS[side]} segments={12} material={holoCore} wire />
       <mesh geometry={LEG_LINES_GEOMETRY[side]} material={holoDarkRock} />
 
       {/* wide blunt foot with a dark sole */}
@@ -249,6 +260,87 @@ function Leg({ side }) {
         <sphereGeometry args={[1, 14, 10]} />
       </mesh>
     </group>
+  );
+}
+
+// ---------- hologram effects ----------
+
+const SPARK_COUNT = 40;
+
+// a repeatable number from 0 to 1, so the sparks always start the same way
+function pseudoRandom(n) {
+  const v = Math.sin(n * 12.9898) * 43758.5453;
+  return v - Math.floor(v);
+}
+
+// small green sparks drifting upwards around him
+function DataSparks() {
+  const points = useRef();
+
+  const data = useMemo(() => {
+    const positions = new Float32Array(SPARK_COUNT * 3);
+    const speeds = new Float32Array(SPARK_COUNT);
+    for (let i = 0; i < SPARK_COUNT; i++) {
+      const angle = pseudoRandom(i) * Math.PI * 2;
+      const radius = 0.5 + pseudoRandom(i + 50) * 0.4;
+      positions[i * 3] = Math.cos(angle) * radius;
+      positions[i * 3 + 1] = pseudoRandom(i + 100) * 2.2;
+      positions[i * 3 + 2] = Math.sin(angle) * radius;
+      speeds[i] = 0.12 + pseudoRandom(i + 150) * 0.2;
+    }
+    return { positions, speeds };
+  }, []);
+
+  useFrame((state, delta) => {
+    if (!points.current) return;
+    const attribute = points.current.geometry.attributes.position;
+    for (let i = 0; i < SPARK_COUNT; i++) {
+      let y = attribute.array[i * 3 + 1] + data.speeds[i] * delta;
+      if (y > 2.3) y = 0.05;
+      attribute.array[i * 3 + 1] = y;
+    }
+    attribute.needsUpdate = true;
+  });
+
+  return (
+    <points ref={points}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[data.positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        color="#9dffb4"
+        size={0.03}
+        transparent
+        opacity={0.8}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// a thin ring of light that sweeps up his body
+function ScanRing() {
+  const ring = useRef();
+
+  useFrame((state) => {
+    if (!ring.current) return;
+    const progress = (state.clock.elapsedTime * 0.35) % 1;
+    ring.current.position.y = progress * 2.2;
+    ring.current.material.opacity = 0.7 * Math.sin(progress * Math.PI);
+  });
+
+  return (
+    <mesh ref={ring} rotation={[Math.PI / 2, 0, 0]}>
+      <torusGeometry args={[0.7, 0.008, 8, 48]} />
+      <meshBasicMaterial
+        color="#9dffb4"
+        transparent
+        opacity={0.6}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </mesh>
   );
 }
 
@@ -264,9 +356,13 @@ export default function Upgrade() {
   useFrame((state) => {
     const t = state.clock.elapsedTime;
 
-    // slow sway
     if (alien.current) {
+      // slow sway
       alien.current.rotation.y = Math.sin(t * 0.4) * 0.12;
+
+      // a very short digital glitch every 4 seconds
+      const glitching = t % 4 < 0.12;
+      alien.current.position.x = glitching ? Math.sin(t * 90) * 0.03 : 0;
     }
 
     // breathing
@@ -306,6 +402,9 @@ export default function Upgrade() {
 
       <Arm side={-1} groupRef={leftArm} />
       <Arm side={1} groupRef={rightArm} />
+
+      <DataSparks />
+      <ScanRing />
     </group>
   );
 }

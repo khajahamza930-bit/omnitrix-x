@@ -5,18 +5,32 @@ import { holoCore, holoRock, holoCrack, holoBright } from "../hologram/hologramM
 
 // Small parts that every alien can use.
 
+// a faint wireframe that can be drawn over a body part
+export const wireMaterial = new THREE.MeshBasicMaterial({
+  color: "#8dffa8",
+  wireframe: true,
+  transparent: true,
+  opacity: 0.14,
+  depthWrite: false,
+});
+
 // one ring of a body part
 export function sec(x, y, z, rx, rz) {
   return { x, y, z, rx, rz };
 }
 
 // a smooth body part made from rings
-export function BodyPart({ sections, segments = 10, material = holoCore }) {
+export function BodyPart({ sections, segments = 10, material = holoCore, wire = false }) {
   const geometry = useMemo(
     () => createLoft(sections, segments),
     [sections, segments]
   );
-  return <mesh geometry={geometry} material={material} />;
+  return (
+    <group>
+      <mesh geometry={geometry} material={material} />
+      {wire && <mesh geometry={geometry} material={wireMaterial} />}
+    </group>
+  );
 }
 
 // an angular rock chunk

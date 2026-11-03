@@ -138,3 +138,26 @@ export const holoCrystal = makeHoloMaterial({
   rim: "#e0fff0",
   opacity: 0.55,
 });
+// glowing lines with bright pulses that travel upwards
+const pulseFragmentShader = `
+  uniform float uTime;
+  uniform vec3 uColor;
+  varying float vWorldY;
+
+  void main() {
+    float band = pow(0.5 + 0.5 * sin(vWorldY * 7.0 - uTime * 3.0), 6.0);
+    vec3 color = mix(uColor * 0.55, vec3(1.0, 1.0, 0.85), band);
+    gl_FragColor = vec4(color, 1.0);
+
+    #include <colorspace_fragment>
+  }
+`;
+
+export const holoPulse = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: holoTime,
+    uColor: { value: new THREE.Color("#c6ff3a") },
+  },
+  vertexShader: vertexShader,
+  fragmentShader: pulseFragmentShader,
+});
