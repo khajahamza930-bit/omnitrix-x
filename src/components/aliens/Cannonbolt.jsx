@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { sec, BodyPart, OmnitrixSymbol } from "./parts";
 import { holoCore, holoRock, holoDarkRock, holoBright, holoShell } from "../hologram/hologramMaterials";
 import { sectionAt, surfacePoint, surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";
+import { createLoft } from "../../utils/bodyShapes";
 
 // Cannonbolt, built from the reference picture.
 // The feet are at y = 0 and he faces the +z direction. He is about 1.45 tall and 1.5 wide.
@@ -51,6 +52,31 @@ function makeArm(s) {
 // made once, so React does not rebuild them
 const LEGS = { "-1": makeLeg(-1), "1": makeLeg(1) };
 const ARMS = { "-1": makeArm(-1), "1": makeArm(1) };
+
+// ---------- stronger glow: a slightly bigger copy that only shows at the edges ----------
+
+const haloMaterial = new THREE.MeshBasicMaterial({
+  color: "#7dffa0",
+  transparent: true,
+  opacity: 0.2,
+  side: THREE.BackSide,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+
+// makes every ring a bit bigger
+function bigger(sections, amount) {
+  return sections.map((s) => sec(s.x, s.y, s.z, s.rx * amount, s.rz * amount));
+}
+
+// a glowing edge around a body part
+function Halo({ sections, segments }) {
+  const geometry = useMemo(
+    () => createLoft(bigger(sections, 1.07), segments),
+    [sections, segments]
+  );
+  return <mesh geometry={geometry} material={haloMaterial} renderOrder={1} />;
+}
 
 // ---------- face and markings ----------
 
@@ -105,6 +131,9 @@ function ShellPlate({ position, rotation = [0, 0, 0], radius }) {
       <mesh scale={[rx * 1.12, ry * 1.17, rz * 0.85]} material={holoRock}>
         <sphereGeometry args={[1, 20, 14]} />
       </mesh>
+      <mesh scale={[rx * 1.32, ry * 1.42, rz * 0.9]} material={haloMaterial} renderOrder={1}>
+        <sphereGeometry args={[1, 20, 14]} />
+      </mesh>
       <mesh scale={[rx, ry, rz]} material={holoShell}>
         <sphereGeometry args={[1, 20, 14]} />
       </mesh>
@@ -116,6 +145,7 @@ function ShellPlate({ position, rotation = [0, 0, 0], radius }) {
 function Body() {
   return (
     <group>
+      <Halo sections={TORSO} segments={16} />
       <BodyPart sections={TORSO} segments={16} material={holoCore} />
 
       <mesh geometry={BAND_GEOMETRY} material={holoDarkRock} />
@@ -181,6 +211,7 @@ function Arm({ side, groupRef }) {
   return (
     <group ref={groupRef} position={[side * 0.5, 1.05, 0]}>
       <group position={[side * -0.5, -1.05, 0]}>
+        <Halo sections={ARMS[side]} segments={12} />
         <BodyPart sections={ARMS[side]} segments={12} material={holoCore} />
         <Hand side={side} />
 
@@ -198,6 +229,7 @@ function Leg({ side, groupRef }) {
   return (
     <group ref={groupRef} position={[x, 0.6, 0]}>
       <group position={[-x, -0.6, 0]}>
+        <Halo sections={LEGS[side]} segments={12} />
         <BodyPart sections={LEGS[side]} segments={12} material={holoCore} />
 
         {/* the shell plate on the knee */}
