@@ -15,24 +15,24 @@ import { sectionAt, surfacePoint, surfaceLine, makeLinesGeometry } from "../../u
 
 // one big body. The face is on the upper part, and the top is the dome of the head
 const TORSO = [
-  sec(0, 0.38, 0, 0.30, 0.27),
-  sec(0, 0.48, 0, 0.40, 0.34),
-  sec(0, 0.68, 0, 0.53, 0.42),
-  sec(0, 0.88, 0, 0.61, 0.45),
-  sec(0, 1.08, 0, 0.59, 0.44),
-  sec(0, 1.22, 0, 0.52, 0.40),
-  sec(0, 1.34, 0, 0.37, 0.30),
-  sec(0, 1.42, 0, 0.16, 0.14),
+  sec(0, 0.42, 0, 0.3, 0.27),
+  sec(0, 0.5, 0, 0.34, 0.3),
+  sec(0, 0.7, 0, 0.44, 0.36),
+  sec(0, 0.95, 0, 0.5, 0.38),
+  sec(0, 1.1, 0, 0.5, 0.36),
+  sec(0, 1.25, 0, 0.42, 0.32),
+  sec(0, 1.34, 0, 0.28, 0.22),
+  sec(0, 1.4, 0, 0.1, 0.09),
 ];
 
 // short, thick legs
 function makeLeg(s) {
   return [
-    sec(s * 0.23, 0.06, 0.04, 0.16, 0.18),
-    sec(s * 0.23, 0.20, 0, 0.17, 0.17),
-    sec(s * 0.23, 0.36, 0, 0.18, 0.18),
-    sec(s * 0.23, 0.52, 0, 0.20, 0.20),
-    sec(s * 0.23, 0.66, 0, 0.19, 0.19),
+    sec(s * 0.19, 0.06, 0.04, 0.14, 0.18),
+    sec(s * 0.19, 0.22, 0, 0.145, 0.16),
+    sec(s * 0.19, 0.38, 0, 0.16, 0.17),
+    sec(s * 0.19, 0.52, 0, 0.18, 0.2),
+    sec(s * 0.19, 0.66, 0, 0.18, 0.2),
   ];
 }
 
@@ -141,13 +141,13 @@ function Body() {
         <OmnitrixSymbol position={[0, 0, 0]} size={0.085} />
       </group>
 
-      {/* Large Cannonbolt shoulder armor */}
+      {/* two huge shoulder plates, tilted outwards */}
       {[-1, 1].map((s) => (
         <ShellPlate
           key={s}
-          position={[s * 0.43, 1.29, 0.13]}
-          rotation={[0, 0, -s * 0.28]}
-          radius={[0.30, 0.24, 0.20]}
+          position={[s * 0.36, 1.25, 0.1]}
+          rotation={[0, 0, -s * 0.25]}
+          radius={[0.25, 0.18, 0.2]}
         />
       ))}
     </group>
@@ -193,7 +193,7 @@ function Arm({ side, groupRef }) {
 
 // the group turns around the hip
 function Leg({ side, groupRef }) {
-  const x = side * 0.23;
+  const x = side * 0.19;
 
   return (
     <group ref={groupRef} position={[x, 0.6, 0]}>
