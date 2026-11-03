@@ -49,11 +49,11 @@ function makeLeg(s) {
 // very long arms that lean a little outwards
 function makeArm(s) {
   const rows = [
-    sec(s * 0.5, 0.66, 0, 0.085, 0.07),
-    sec(s * 0.48, 0.82, 0, 0.115, 0.095),
-    sec(s * 0.45, 1.0, 0, 0.125, 0.105),
-    sec(s * 0.42, 1.2, 0, 0.12, 0.105),
-    sec(s * 0.38, 1.38, 0, 0.13, 0.115),
+    sec(s * 0.62, 0.66, 0, 0.085, 0.07),
+    sec(s * 0.58, 0.82, 0, 0.115, 0.095),
+    sec(s * 0.53, 1.0, 0, 0.125, 0.105),
+    sec(s * 0.48, 1.2, 0, 0.12, 0.105),
+    sec(s * 0.42, 1.38, 0, 0.13, 0.115),
     sec(s * 0.34, 1.52, 0, 0.15, 0.13),
   ];
 
@@ -67,9 +67,14 @@ function makeArm(s) {
   return rows;
 }
 
+// makes every ring wider and deeper, so the part gets thicker
+function thicker(sections, amount) {
+  return sections.map((s) => sec(s.x, s.y, s.z, s.rx * amount, s.rz * amount));
+}
+
 // made once, so React does not rebuild them
-const LEGS = { "-1": makeLeg(-1), "1": makeLeg(1) };
-const ARMS = { "-1": makeArm(-1), "1": makeArm(1) };
+const LEGS = { "-1": thicker(makeLeg(-1), 1.2), "1": thicker(makeLeg(1), 1.2) };
+const ARMS = { "-1": thicker(makeArm(-1), 1.35), "1": thicker(makeArm(1), 1.35) };
 
 // ---------- the flat hand with four long fingers ----------
 
@@ -206,7 +211,7 @@ function Hand({ side }) {
   const material = side === -1 ? holoDarkRock : holoCore;
 
   return (
-    <group position={[side * 0.5, 0.64, 0]} rotation={[0, 0, side * 0.1]}>
+    <group position={[side * 0.62, 0.64, 0]} rotation={[0, 0, side * 0.25]}>
       <mesh geometry={HAND_GEOMETRY} material={material} />
     </group>
   );
@@ -289,7 +294,7 @@ export default function Upgrade() {
   });
 
   return (
-    <group ref={alien} scale={1.05}>
+    <group ref={alien} scale={1.15}>
       <group ref={body}>
         <Body />
       </group>
