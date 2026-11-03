@@ -161,3 +161,9 @@ export const holoPulse = new THREE.ShaderMaterial({
   vertexShader: vertexShader,
   fragmentShader: pulseFragmentShader,
 });
+// mid-green solid armor, used for the gold shell plates of Cannonbolt
+export const holoShell = makeHoloMaterial({
+  color: "#2da84a",
+  rim: "#a8ffb8",
+  opacity: 0.85,
+});
