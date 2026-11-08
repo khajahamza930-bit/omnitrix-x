@@ -3,49 +3,49 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 import { sec, BodyPart, OmnitrixSymbol } from "./parts";
-import { holoCore, holoRock, holoDarkRock, holoBright, holoShell } from "../hologram/hologramMaterials";
-import { sectionAt, surfacePoint, surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";
+import { holoRock, holoDarkRock, holoBright, holoSoft, holoGold } from "../hologram/hologramMaterials";
+import { sectionAt, surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";
 import { createLoft } from "../../utils/bodyShapes";
 
-// Cannonbolt, built from the reference picture.
-// The feet are at y = 0 and he faces the +z direction. He is about 1.45 tall and 1.5 wide.
-// A wide heavy body with no neck. White body, gold shell plates in black rings.
-// Every 14 seconds he curls up and rolls like a ball.
+// Cannonbolt, built from the reference sheet.
+// The feet are at y = 0 and he faces the +z direction. He is about 1.8 tall.
+// An upright body with a clear round head, big gold plates, and an egg-shaped shell on his back.
+// Every 14 seconds he curls up and rolls on his shell like a ball.
 
 // ---------- body shapes (rings from bottom to top) ----------
 
-// one big body. The face is on the upper part, and the top is the dome of the head
+// the wide barrel body, from the hips up to the shoulders
 const TORSO = [
-  sec(0, 0.42, 0, 0.3, 0.27),
-  sec(0, 0.5, 0, 0.34, 0.3),
-  sec(0, 0.7, 0, 0.44, 0.36),
-  sec(0, 0.95, 0, 0.5, 0.38),
-  sec(0, 1.1, 0, 0.5, 0.36),
-  sec(0, 1.25, 0, 0.42, 0.32),
-  sec(0, 1.34, 0, 0.28, 0.22),
-  sec(0, 1.4, 0, 0.1, 0.09),
+  sec(0, 0.66, 0, 0.34, 0.26),
+  sec(0, 0.8, 0, 0.4, 0.3),
+  sec(0, 0.98, 0, 0.44, 0.32),
+  sec(0, 1.15, 0, 0.46, 0.32),
+  sec(0, 1.3, 0, 0.44, 0.29),
+  sec(0, 1.4, 0, 0.3, 0.22),
+  sec(0, 1.47, 0, 0.14, 0.12),
 ];
 
 // short, thick legs
 function makeLeg(s) {
   return [
-    sec(s * 0.19, 0.06, 0.04, 0.14, 0.18),
-    sec(s * 0.19, 0.22, 0, 0.145, 0.16),
-    sec(s * 0.19, 0.38, 0, 0.16, 0.17),
-    sec(s * 0.19, 0.52, 0, 0.18, 0.2),
-    sec(s * 0.19, 0.66, 0, 0.18, 0.2),
+    sec(s * 0.2, 0.06, 0.05, 0.14, 0.19),
+    sec(s * 0.2, 0.2, 0, 0.14, 0.16),
+    sec(s * 0.2, 0.36, 0, 0.155, 0.17),
+    sec(s * 0.2, 0.52, 0, 0.18, 0.2),
+    sec(s * 0.2, 0.7, 0, 0.2, 0.22),
   ];
 }
 
 // thick arms that hang down to the knees
 function makeArm(s) {
   return [
-    sec(s * 0.64, 0.34, 0.02, 0.15, 0.14),
-    sec(s * 0.64, 0.5, 0, 0.17, 0.16),
-    sec(s * 0.64, 0.7, 0, 0.19, 0.18),
-    sec(s * 0.6, 0.9, 0, 0.2, 0.19),
-    sec(s * 0.55, 1.05, 0, 0.2, 0.19),
-    sec(s * 0.5, 1.13, 0, 0.17, 0.16),
+    sec(s * 0.66, 0.42, 0.08, 0.1, 0.1),
+    sec(s * 0.66, 0.56, 0.06, 0.13, 0.13),
+    sec(s * 0.66, 0.74, 0.03, 0.15, 0.15),
+    sec(s * 0.65, 0.92, 0, 0.16, 0.16),
+    sec(s * 0.62, 1.1, 0, 0.17, 0.16),
+    sec(s * 0.56, 1.25, 0, 0.17, 0.16),
+    sec(s * 0.5, 1.33, 0, 0.14, 0.13),
   ];
 }
 
@@ -78,7 +78,37 @@ function Halo({ sections, segments }) {
   return <mesh geometry={geometry} material={haloMaterial} renderOrder={1} />;
 }
 
-// ---------- face and markings ----------
+// ---------- the head and the markings ----------
+
+// half width, half height and half depth of the head
+const HEAD_SIZE = [0.27, 0.26, 0.25];
+
+// a point on the front of the head. x is sideways and y is height (0, 0 is the middle of the head)
+function headPoint(x, y, lift = 0.012) {
+  const [rx, ry, rz] = HEAD_SIZE;
+  const inside = 1 - (x / rx) ** 2 - (y / ry) ** 2;
+  return [x, y, rz * Math.sqrt(Math.max(0, inside)) + lift];
+}
+
+// the flat frown, and the short dark bar between the eyes
+const MOUTH_GEOMETRY = makeLinesGeometry(
+  [[headPoint(-0.11, -0.085), headPoint(-0.06, -0.108), headPoint(0, -0.114), headPoint(0.06, -0.108), headPoint(0.11, -0.085)]],
+  0.02
+);
+const BAR_GEOMETRY = makeLinesGeometry(
+  [[headPoint(0, 0.13), headPoint(0, 0.03), headPoint(0, -0.04)]],
+  0.017
+);
+
+// the white stripe that goes over the black cap, from the front to the back
+const STRIPE_POINTS = [];
+for (let i = 0; i <= 12; i++) {
+  const a = -0.95 + (1.9 * i) / 12;
+  STRIPE_POINTS.push([0, 0.275 * Math.cos(a) * 1.012, 0.265 * Math.sin(a) * 1.012]);
+}
+const STRIPE_GEOMETRY = makeLinesGeometry([STRIPE_POINTS], 0.016);
+
+// ---------- the stripe on the belly ----------
 
 // the angle on the torso that matches a sideways position x at a height y
 function angleAt(y, x) {
@@ -92,161 +122,185 @@ function frontLine(points) {
   return surfaceLine(TORSO, corners, 0.02);
 }
 
-// thick black bands: the bar on the forehead, the stripe on the belly (they make a 7 with the mouth),
-// and the arch over the top of the head
-const BAND_GEOMETRY = makeLinesGeometry(
-  [
-    frontLine([[0, 1.22], [0, 1.08], [0, 0.93]]),
-    frontLine([[0.06, 0.78], [0.02, 0.66], [-0.03, 0.56], [-0.06, 0.47]]),
-    frontLine([
-      [-0.5, 1.1], [-0.42, 1.22], [-0.28, 1.31], [-0.14, 1.36], [0, 1.375],
-      [0.14, 1.36], [0.28, 1.31], [0.42, 1.22], [0.5, 1.1],
-    ]),
-  ],
-  0.04
+// the black diagonal stripe, going down and to the left
+const BELLY_STRIPE = makeLinesGeometry(
+  [frontLine([[0.1, 1.12], [0.04, 0.98], [-0.02, 0.84], [-0.07, 0.72]])],
+  0.045
 );
-
-// the flat frown that is his mouth (the ends point down)
-const MOUTH_GEOMETRY = makeLinesGeometry(
-  [frontLine([[-0.2, 0.83], [-0.1, 0.855], [0, 0.865], [0.1, 0.855], [0.2, 0.83]])],
-  0.02
-);
-
-// where the eyes and the Omnitrix sit on the surface
-const EYE_ANGLE = angleAt(1.07, 0.19);
-const EYE_POSITIONS = [-1, 1].map((s) => surfacePoint(TORSO, 1.07, s * EYE_ANGLE, 0.02));
-const SYMBOL_POSITION = surfacePoint(TORSO, 1.3, 0.3, 0.03);
 
 // ---------- body parts ----------
 
-// a gold shell plate sitting in a black ring, with a gray ring in between
+// a gold shell plate in a black ring, with a gray ring in between and a glowing outline
 function ShellPlate({ position, rotation = [0, 0, 0], radius }) {
   const [rx, ry, rz] = radius;
 
   return (
     <group position={position} rotation={rotation}>
+      <mesh scale={[rx * 1.34, ry * 1.42, rz * 0.9]} material={haloMaterial} renderOrder={1}>
+        <sphereGeometry args={[1, 20, 14]} />
+      </mesh>
       <mesh scale={[rx * 1.24, ry * 1.33, rz * 0.75]} material={holoDarkRock}>
         <sphereGeometry args={[1, 20, 14]} />
       </mesh>
       <mesh scale={[rx * 1.12, ry * 1.17, rz * 0.85]} material={holoRock}>
         <sphereGeometry args={[1, 20, 14]} />
       </mesh>
-      <mesh scale={[rx * 1.32, ry * 1.42, rz * 0.9]} material={haloMaterial} renderOrder={1}>
+      <mesh scale={[rx, ry, rz]} material={holoGold}>
         <sphereGeometry args={[1, 20, 14]} />
       </mesh>
-      <mesh scale={[rx, ry, rz]} material={holoShell}>
-        <sphereGeometry args={[1, 20, 14]} />
+      <mesh scale={[rx * 1.26, ry * 1.35, 0.35]} material={holoBright}>
+        <torusGeometry args={[1, 0.045, 6, 40]} />
       </mesh>
     </group>
   );
 }
 
-// the body, the face, the black bands and the two big shoulder plates
+// the egg-shaped shell on his back, with two dark ridge bands
+function Shell() {
+  const center = [0, 0.98, -0.36];
+  const size = [0.4, 0.62, 0.25];
+  const bands = [1.2, 0.84];
+
+  return (
+    <group position={center}>
+      <mesh scale={[size[0] * 1.09, size[1] * 1.09, size[2] * 1.09]} material={haloMaterial} renderOrder={1}>
+        <sphereGeometry args={[1, 20, 14]} />
+      </mesh>
+      <mesh scale={size} material={holoGold}>
+        <sphereGeometry args={[1, 20, 14]} />
+      </mesh>
+
+      {bands.map((h) => {
+        // how much smaller the shell is at this height
+        const f = Math.sqrt(1 - ((h - center[1]) / size[1]) ** 2);
+        return (
+          <mesh
+            key={h}
+            position={[0, h - center[1], 0]}
+            scale={[size[0] * f * 1.03, 0.03, size[2] * f * 1.03]}
+            material={holoDarkRock}
+          >
+            <sphereGeometry args={[1, 20, 8]} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
 function Body() {
   return (
     <group>
       <Halo sections={TORSO} segments={16} />
-      <BodyPart sections={TORSO} segments={16} material={holoCore} />
+      <BodyPart sections={TORSO} segments={16} material={holoSoft} wire />
+      <mesh geometry={BELLY_STRIPE} material={holoDarkRock} />
+      <Shell />
+    </group>
+  );
+}
 
-      <mesh geometry={BAND_GEOMETRY} material={holoDarkRock} />
-      <mesh geometry={MOUTH_GEOMETRY} material={holoDarkRock} />
+// the head with the black cap, the white stripe, the eyes and the mouth
+function Head() {
+  return (
+    <group position={[0, 1.5, 0.04]}>
+      {/* a soft glow behind the head, and the head itself */}
+      <mesh scale={[HEAD_SIZE[0] * 1.08, HEAD_SIZE[1] * 1.08, HEAD_SIZE[2] * 1.08]} material={haloMaterial} renderOrder={1}>
+        <sphereGeometry args={[1, 24, 16]} />
+      </mesh>
+      <mesh scale={HEAD_SIZE} material={holoSoft}>
+        <sphereGeometry args={[1, 24, 16]} />
+      </mesh>
 
-      {/* the eyes: a black rim and a glowing middle */}
-      {[-1, 1].map((s, i) => (
-        <group key={s} position={EYE_POSITIONS[i]} rotation={[0, s * EYE_ANGLE, s * 0.15]}>
-          <mesh scale={[0.062, 0.078, 0.02]} material={holoDarkRock}>
+      {/* the black cap on the top of the head, and the white stripe over it */}
+      <mesh scale={[0.285, 0.275, 0.265]} material={holoDarkRock}>
+        <sphereGeometry args={[1, 24, 10, 0, Math.PI * 2, 0, 1.0]} />
+      </mesh>
+      <mesh geometry={STRIPE_GEOMETRY} material={holoBright} />
+
+      {/* Omnitrix on the cap, with a dark disc behind it */}
+      <group position={[0.09, 0.19, 0.18]} rotation={[-0.8, 0.25, 0]}>
+        <mesh position={[0, 0, -0.004]} material={holoDarkRock}>
+          <circleGeometry args={[0.06, 20]} />
+        </mesh>
+        <OmnitrixSymbol position={[0, 0, 0]} size={0.075} />
+      </group>
+
+      {/* the eyes: a dark rim and a glowing middle. They are slanted, so he looks angry */}
+      {[-1, 1].map((s) => (
+        <group key={s} position={headPoint(s * 0.105, 0.0)} rotation={[0, s * 0.4, s * 0.35]}>
+          <mesh scale={[0.085, 0.055, 0.02]} material={holoDarkRock}>
             <sphereGeometry args={[1, 16, 12]} />
           </mesh>
-          <mesh position={[0, 0, 0.012]} scale={[0.044, 0.058, 0.02]} material={holoBright}>
+          <mesh position={[0, 0, 0.012]} scale={[0.065, 0.04, 0.02]} material={holoBright}>
             <sphereGeometry args={[1, 16, 12]} />
           </mesh>
         </group>
       ))}
 
-      {/* Omnitrix on the black band over the head, with a dark disc behind it */}
-      <group position={SYMBOL_POSITION} rotation={[-0.83, 0.3, 0]}>
-        <mesh position={[0, 0, -0.004]} material={holoDarkRock}>
-          <circleGeometry args={[0.07, 20]} />
-        </mesh>
-        <OmnitrixSymbol position={[0, 0, 0]} size={0.085} />
-      </group>
-
-      {/* two huge shoulder plates, tilted outwards */}
-      {[-1, 1].map((s) => (
-        <ShellPlate
-          key={s}
-          position={[s * 0.36, 1.25, 0.1]}
-          rotation={[0, 0, -s * 0.25]}
-          radius={[0.25, 0.18, 0.2]}
-        />
-      ))}
+      <mesh geometry={BAR_GEOMETRY} material={holoDarkRock} />
+      <mesh geometry={MOUTH_GEOMETRY} material={holoDarkRock} />
     </group>
   );
 }
 
-// big white mitt hand with three black claws
-function Hand({ side }) {
-  return (
-    <group>
-      <mesh position={[side * 0.64, 0.3, 0.03]} scale={[0.17, 0.13, 0.13]} material={holoCore}>
-        <sphereGeometry args={[1, 16, 12]} />
-      </mesh>
-
-      {[-1, 0, 1].map((k) => (
-        <mesh
-          key={k}
-          position={[side * 0.64 + k * 0.08, 0.17, 0.1]}
-          rotation={[Math.PI - 0.4, 0, 0]}
-          material={holoDarkRock}
-        >
-          <coneGeometry args={[0.028, 0.18, 5]} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-// the group turns around the shoulder
+// the group turns around the shoulder, so the arm can swing and wrap forward
 function Arm({ side, groupRef }) {
-  return (
-    <group ref={groupRef} position={[side * 0.5, 1.05, 0]}>
-      <group position={[side * -0.5, -1.05, 0]}>
-        <Halo sections={ARMS[side]} segments={12} />
-        <BodyPart sections={ARMS[side]} segments={12} material={holoCore} />
-        <Hand side={side} />
-
-        {/* the shell plate on the outer arm */}
-        <ShellPlate position={[side * 0.66, 0.7, 0.1]} radius={[0.17, 0.23, 0.13]} />
-      </group>
-    </group>
-  );
-}
-
-// the group turns around the hip
-function Leg({ side, groupRef }) {
-  const x = side * 0.19;
+  const s = side;
 
   return (
-    <group ref={groupRef} position={[x, 0.6, 0]}>
-      <group position={[-x, -0.6, 0]}>
-        <Halo sections={LEGS[side]} segments={12} />
-        <BodyPart sections={LEGS[side]} segments={12} material={holoCore} />
+    <group ref={groupRef} position={[s * 0.52, 1.25, 0]}>
+      <group position={[s * -0.52, -1.25, 0]}>
+        <Halo sections={ARMS[s]} segments={12} />
+        <BodyPart sections={ARMS[s]} segments={12} material={holoSoft} wire />
 
-        {/* the shell plate on the knee */}
-        <ShellPlate position={[x, 0.38, 0.14]} radius={[0.09, 0.125, 0.07]} />
-
-        {/* blunt foot with three black claws */}
-        <mesh position={[x, 0.06, 0.12]} scale={[0.15, 0.07, 0.2]} material={holoCore}>
+        {/* big mitt hand with three black claws */}
+        <mesh position={[s * 0.66, 0.37, 0.1]} scale={[0.14, 0.1, 0.12]} material={holoSoft}>
           <sphereGeometry args={[1, 16, 12]} />
         </mesh>
         {[-1, 0, 1].map((k) => (
           <mesh
             key={k}
-            position={[x + k * 0.08, 0.05, 0.3]}
+            position={[s * 0.66 + k * 0.065, 0.25, 0.15]}
+            rotation={[Math.PI - 0.3, 0, 0]}
+            material={holoDarkRock}
+          >
+            <coneGeometry args={[0.03, 0.2, 5]} />
+          </mesh>
+        ))}
+
+        {/* the big plate over the shoulder, and a plate on the upper arm */}
+        <ShellPlate position={[s * 0.58, 1.38, 0]} rotation={[0, s * 0.35, -s * 0.35]} radius={[0.26, 0.17, 0.16]} />
+        <ShellPlate position={[s * 0.74, 0.98, 0.05]} rotation={[0, s * 0.5, 0]} radius={[0.1, 0.17, 0.09]} />
+      </group>
+    </group>
+  );
+}
+
+// the group turns around the hip, so the leg can fold up
+function Leg({ side, groupRef }) {
+  const x = side * 0.2;
+
+  return (
+    <group ref={groupRef} position={[x, 0.62, 0]}>
+      <group position={[-x, -0.62, 0]}>
+        <Halo sections={LEGS[side]} segments={12} />
+        <BodyPart sections={LEGS[side]} segments={12} material={holoSoft} wire />
+
+        {/* the plate on the knee */}
+        <ShellPlate position={[x, 0.42, 0.2]} rotation={[0, side * 0.2, 0]} radius={[0.1, 0.14, 0.07]} />
+
+        {/* blunt foot with three black claws */}
+        <mesh position={[x, 0.06, 0.12]} scale={[0.16, 0.07, 0.22]} material={holoSoft}>
+          <sphereGeometry args={[1, 16, 12]} />
+        </mesh>
+        {[-1, 0, 1].map((k) => (
+          <mesh
+            key={k}
+            position={[x + k * 0.08, 0.05, 0.33]}
             rotation={[Math.PI / 2 + 0.3, 0, 0]}
             material={holoDarkRock}
           >
-            <coneGeometry args={[0.025, 0.15, 5]} />
+            <coneGeometry args={[0.03, 0.2, 5]} />
           </mesh>
         ))}
       </group>
@@ -273,9 +327,9 @@ function DataSparks() {
     const speeds = new Float32Array(SPARK_COUNT);
     for (let i = 0; i < SPARK_COUNT; i++) {
       const angle = pseudoRandom(i) * Math.PI * 2;
-      const radius = 0.55 + pseudoRandom(i + 50) * 0.4;
+      const radius = 0.7 + pseudoRandom(i + 50) * 0.35;
       positions[i * 3] = Math.cos(angle) * radius;
-      positions[i * 3 + 1] = pseudoRandom(i + 100) * 1.7;
+      positions[i * 3 + 1] = pseudoRandom(i + 100) * 2.0;
       positions[i * 3 + 2] = Math.sin(angle) * radius;
       speeds[i] = 0.12 + pseudoRandom(i + 150) * 0.2;
     }
@@ -287,7 +341,7 @@ function DataSparks() {
     const attribute = points.current.geometry.attributes.position;
     for (let i = 0; i < SPARK_COUNT; i++) {
       let y = attribute.array[i * 3 + 1] + data.speeds[i] * delta;
-      if (y > 1.8) y = 0.05;
+      if (y > 2.1) y = 0.05;
       attribute.array[i * 3 + 1] = y;
     }
     attribute.needsUpdate = true;
@@ -317,13 +371,13 @@ function ScanRing() {
   useFrame((state) => {
     if (!ring.current) return;
     const progress = (state.clock.elapsedTime * 0.35) % 1;
-    ring.current.position.y = progress * 1.6;
+    ring.current.position.y = progress * 1.9;
     ring.current.material.opacity = 0.7 * Math.sin(progress * Math.PI);
   });
 
   return (
     <mesh ref={ring} rotation={[Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[0.75, 0.008, 8, 48]} />
+      <torusGeometry args={[0.8, 0.008, 8, 48]} />
       <meshBasicMaterial
         color="#9dffb4"
         transparent
@@ -349,7 +403,7 @@ const ROLL_TIME = 5; // how long one roll takes
 export default function Cannonbolt() {
   const alien = useRef(); // sway and glitch
   const spin = useRef(); // turns him over when he rolls
-  const upper = useRef(); // body and arms, leans forward when he curls up
+  const upper = useRef(); // body, head and arms. Leans forward when he curls up
   const leftArm = useRef();
   const rightArm = useRef();
   const leftLeg = useRef();
@@ -413,14 +467,15 @@ export default function Cannonbolt() {
   });
 
   return (
-    <group ref={alien} scale={0.92}>
+    <group ref={alien} scale={1.05}>
       {/* the ball turns around its middle */}
-      <group ref={spin} position={[0, 0.65, 0]}>
-        <group position={[0, -0.65, 0]}>
+      <group ref={spin} position={[0, 0.85, 0]}>
+        <group position={[0, -0.85, 0]}>
           {/* upper body leans forward around the hips */}
-          <group ref={upper} position={[0, 0.55, 0]}>
-            <group position={[0, -0.55, 0]}>
+          <group ref={upper} position={[0, 0.7, 0]}>
+            <group position={[0, -0.7, 0]}>
               <Body />
+              <Head />
               <Arm side={-1} groupRef={leftArm} />
               <Arm side={1} groupRef={rightArm} />
             </group>
