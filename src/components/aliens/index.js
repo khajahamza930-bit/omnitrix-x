@@ -3,6 +3,8 @@ import FourArms from "./FourArms";
 import XLR8 from "./XLR8";
 import Diamondhead from "./Diamondhead";
 import Upgrade from "./Upgrade";
+import Cannonbolt from "./Cannonbolt";
+import Wildmutt from "./Wildmutt";
 
 // This list connects an alien id (from aliens.js) to its 3D model.
 // When we finish a new alien, we add one line here.
@@ -12,6 +14,8 @@ const alienModels = {
   3: XLR8,
   4: Diamondhead,
   5: Upgrade,
+  6: Cannonbolt,
+  7: Wildmutt,
 };
 
 export default alienModels;

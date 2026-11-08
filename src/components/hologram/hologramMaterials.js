@@ -167,3 +167,15 @@ export const holoShell = makeHoloMaterial({
   rim: "#a8ffb8",
   opacity: 0.85,
 });
+// medium see-through green, used for the bodies that carry bright plates
+export const holoSoft = makeHoloMaterial({
+  color: "#35d65f",
+  rim: "#c0ffd0",
+  opacity: 0.4,
+});
+// bright solid green, used for the gold shell plates
+export const holoGold = makeHoloMaterial({
+  color: "#9dff4a",
+  rim: "#f4ffd8",
+  opacity: 0.95,
+});
