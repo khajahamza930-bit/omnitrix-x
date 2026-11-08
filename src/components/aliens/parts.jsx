@@ -82,3 +82,20 @@ export function OmnitrixSymbol({ position, size = 0.1 }) {
     </mesh>
   );
 }
+// a soft glow around a body part: a slightly bigger copy that only shows at the edges
+export const haloMaterial = new THREE.MeshBasicMaterial({
+  color: "#7dffa0",
+  transparent: true,
+  opacity: 0.2,
+  side: THREE.BackSide,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+
+export function Halo({ sections, segments = 12, amount = 1.07 }) {
+  const geometry = useMemo(
+    () => createLoft(sections.map((s) => sec(s.x, s.y, s.z, s.rx * amount, s.rz * amount)), segments),
+    [sections, segments, amount]
+  );
+  return <mesh geometry={geometry} material={haloMaterial} renderOrder={1} />;
+}
