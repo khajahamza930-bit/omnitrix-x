@@ -1,0 +1,410 @@
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+
+import { sec, BodyPart, OmnitrixSymbol, wireMaterial } from "./parts";
+import { holoCore, holoDarkRock, holoCrack, holoPulse } from "../hologram/hologramMaterials";
+import { surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";
+
+// Upgrade, built from the reference picture.
+// The feet are at y = 0 and he faces the +z direction. The head tip is at about y = 2.
+// Head and left arm are dark with bright lines. The rest is bright with dark lines.
+// The arms are much longer than the legs.
+
+// ---------- body shapes (rings from bottom to top) ----------
+
+// broad chest, narrow waist, wide hips
+const TORSO = [
+  sec(0, 0.8, 0, 0.24, 0.14),
+  sec(0, 0.95, 0, 0.22, 0.135),
+  sec(0, 1.1, 0, 0.2, 0.13),
+  sec(0, 1.3, 0, 0.25, 0.145),
+  sec(0, 1.5, 0, 0.29, 0.16),
+  sec(0, 1.62, 0, 0.29, 0.15),
+  sec(0, 1.7, 0, 0.14, 0.11),
+];
+
+// tall tapering head. The base is wide, and the tip is a little right of the middle
+const HEAD = [
+  sec(-0.03, 1.6, 0, 0.2, 0.14),
+  sec(-0.01, 1.72, 0, 0.17, 0.125),
+  sec(0.02, 1.83, 0, 0.13, 0.105),
+  sec(0.06, 1.92, 0, 0.095, 0.08),
+  sec(0.1, 1.98, 0, 0.055, 0.05),
+  sec(0.12, 2.01, 0, 0.022, 0.022),
+];
+
+// short, thick legs
+function makeLeg(s) {
+  return [
+    sec(s * 0.2, 0.12, 0, 0.105, 0.11),
+    sec(s * 0.195, 0.3, 0, 0.115, 0.12),
+    sec(s * 0.185, 0.45, 0, 0.12, 0.125),
+    sec(s * 0.175, 0.6, 0, 0.135, 0.135),
+    sec(s * 0.165, 0.78, 0, 0.145, 0.14),
+    sec(s * 0.16, 0.9, 0, 0.14, 0.13),
+  ];
+}
+
+// very long arms that lean outwards, away from the body
+function makeArm(s) {
+  const rows = [
+    sec(s * 0.62, 0.66, 0, 0.085, 0.07),
+    sec(s * 0.58, 0.82, 0, 0.115, 0.095),
+    sec(s * 0.53, 1.0, 0, 0.125, 0.105),
+    sec(s * 0.48, 1.2, 0, 0.12, 0.105),
+    sec(s * 0.42, 1.38, 0, 0.13, 0.115),
+    sec(s * 0.34, 1.52, 0, 0.15, 0.13),
+  ];
+
+  if (s === -1) {
+    // the dark shoulder rises up into the head
+    rows.push(sec(-0.28, 1.64, 0, 0.15, 0.12));
+    rows.push(sec(-0.2, 1.74, 0, 0.12, 0.1));
+  } else {
+    rows.push(sec(0.3, 1.6, 0, 0.13, 0.115));
+  }
+  return rows;
+}
+
+// makes every ring wider and deeper, so the part gets thicker
+function thicker(sections, amount) {
+  return sections.map((s) => sec(s.x, s.y, s.z, s.rx * amount, s.rz * amount));
+}
+
+// made once, so React does not rebuild them
+const LEGS = { "-1": thicker(makeLeg(-1), 1.2), "1": thicker(makeLeg(1), 1.2) };
+const ARMS = { "-1": thicker(makeArm(-1), 1.35), "1": thicker(makeArm(1), 1.35) };
+
+// ---------- the flat hand with four long fingers ----------
+
+function makeHandGeometry() {
+  const half = 0.026; // half the width of a finger
+  const centers = [0.105, 0.035, -0.035, -0.105];
+  const lengths = [0.24, 0.27, 0.27, 0.24];
+
+  const shape = new THREE.Shape();
+  shape.moveTo(-0.08, 0);
+  shape.lineTo(0.08, 0);
+  shape.lineTo(0.14, -0.1);
+
+  // go along the fingers from right to left
+  centers.forEach((cx, i) => {
+    const tip = -0.2 - lengths[i];
+    shape.lineTo(cx + half, -0.2);
+    shape.lineTo(cx + half, tip + 0.02);
+    shape.lineTo(cx, tip);
+    shape.lineTo(cx - half, tip + 0.02);
+    shape.lineTo(cx - half, -0.2);
+  });
+
+  shape.lineTo(-0.14, -0.2);
+  shape.lineTo(-0.14, -0.1);
+  shape.closePath();
+
+  const geometry = new THREE.ExtrudeGeometry(shape, { depth: 0.05, bevelEnabled: false });
+  geometry.translate(0, 0, -0.025);
+  return geometry;
+}
+
+const HAND_GEOMETRY = makeHandGeometry();
+
+// ---------- circuit lines ----------
+// Each corner is [height, angle]. Lines go up or down, then sideways, in steps.
+
+// lines on the front of the head (angle below 0 is towards the left)
+const HEAD_LINES = [
+  [[1.96, 0.0], [1.62, 0.0]],
+  [[1.74, 0.0], [1.74, -0.7], [1.66, -0.7], [1.66, -1.1]],
+  [[1.82, 0.0], [1.82, 0.6], [1.74, 0.6]],
+];
+
+// lines in the middle of the torso
+const TORSO_CENTER_LINES = [
+  [[1.385, 0.0], [1.1, 0.0]],
+  [[0.98, -0.9], [0.98, -0.35], [0.9, -0.35], [0.9, 0.35], [0.98, 0.35], [0.98, 0.9]],
+];
+
+// lines on one side of the torso (they are copied to the other side)
+const TORSO_HALF_LINES = [
+  [[1.64, 0.15], [1.64, 0.5], [1.56, 0.5], [1.56, 0.8], [1.42, 0.8]],
+  [[1.36, 0.9], [1.2, 0.9], [1.2, 1.15], [1.05, 1.15]],
+  [[1.3, 0.0], [1.3, 0.35], [1.2, 0.35], [1.2, 0.6], [1.08, 0.6]],
+  [[1.16, 0.0], [1.16, 0.28], [1.06, 0.28], [1.06, 0.5]],
+];
+
+// lines on the BACK of the torso. The picture only shows the front,
+// so these are my estimate, a simple version of the front pattern
+const TORSO_BACK_LINES = [
+  [[1.64, Math.PI], [0.9, Math.PI]],
+  [[1.5, Math.PI], [1.5, Math.PI + 0.5], [1.36, Math.PI + 0.5], [1.36, Math.PI + 0.9]],
+  [[1.5, Math.PI], [1.5, Math.PI - 0.5], [1.36, Math.PI - 0.5], [1.36, Math.PI - 0.9]],
+  [[1.2, Math.PI + 0.5], [1.2, Math.PI - 0.5]],
+];
+
+// lines on one arm. A positive angle is towards the outside of the arm
+const ARM_LINES = [
+  [[1.5, 0.0], [1.5, 0.5], [1.38, 0.5], [1.38, -0.3], [1.24, -0.3], [1.24, 0.4], [1.12, 0.4]],
+  [[1.04, -0.4], [1.04, 0.3], [0.94, 0.3], [0.94, -0.5], [0.82, -0.5]],
+  [[0.78, 0.6], [0.78, 0.0], [0.7, 0.0]],
+];
+
+// lines on one leg. A positive angle is towards the outside of the leg
+const LEG_LINES = [
+  [[0.86, -0.6], [0.86, 0.2], [0.76, 0.2], [0.76, 0.8]],
+  [[0.5, -0.8], [0.5, 0.8]],
+  [[0.4, 0.0], [0.4, 0.5], [0.28, 0.5], [0.28, -0.4], [0.2, -0.4]],
+];
+
+// turns the angles around, so a line can be used on the other side
+function mirrorLine(line, s) {
+  return line.map(([y, angle]) => [y, angle * s]);
+}
+
+// the line shapes are made once, so React does not rebuild them
+const HEAD_LINES_GEOMETRY = makeLinesGeometry(HEAD_LINES.map((line) => surfaceLine(HEAD, line)));
+
+const TORSO_LINES_GEOMETRY = makeLinesGeometry([
+  ...TORSO_CENTER_LINES.map((line) => surfaceLine(TORSO, line)),
+  ...[-1, 1].flatMap((s) => TORSO_HALF_LINES.map((line) => surfaceLine(TORSO, mirrorLine(line, s)))),
+  ...TORSO_BACK_LINES.map((line) => surfaceLine(TORSO, line)),
+]);
+
+const ARM_LINES_GEOMETRY = {
+  "-1": makeLinesGeometry(ARM_LINES.map((line) => surfaceLine(ARMS[-1], mirrorLine(line, -1)))),
+  "1": makeLinesGeometry(ARM_LINES.map((line) => surfaceLine(ARMS[1], mirrorLine(line, 1)))),
+};
+
+const LEG_LINES_GEOMETRY = {
+  "-1": makeLinesGeometry(LEG_LINES.map((line) => surfaceLine(LEGS[-1], mirrorLine(line, -1)))),
+  "1": makeLinesGeometry(LEG_LINES.map((line) => surfaceLine(LEGS[1], mirrorLine(line, 1)))),
+};
+
+// ---------- body parts ----------
+
+function Body() {
+  return (
+    <group>
+      <BodyPart sections={TORSO} segments={12} material={holoCore} wire />
+      <mesh geometry={TORSO_LINES_GEOMETRY} material={holoDarkRock} />
+
+      {/* Omnitrix emblem on the upper chest: dark disc, bright ring, hourglass */}
+      <mesh position={[0.04, 1.46, 0.165]} material={holoDarkRock}>
+        <circleGeometry args={[0.075, 20]} />
+      </mesh>
+      <mesh position={[0.04, 1.46, 0.168]} material={holoCrack}>
+        <torusGeometry args={[0.075, 0.01, 8, 24]} />
+      </mesh>
+      <OmnitrixSymbol position={[0.04, 1.46, 0.172]} size={0.1} />
+    </group>
+  );
+}
+
+// the group turns around the base of the head, so the head tilts
+function Head({ groupRef }) {
+  return (
+    <group ref={groupRef} position={[0, 1.62, 0]}>
+      <group position={[0, -1.62, 0]}>
+        <BodyPart sections={HEAD} segments={12} material={holoDarkRock} wire />
+        <mesh geometry={HEAD_LINES_GEOMETRY} material={holoPulse} />
+
+        {/* small ring at the very tip of the head */}
+        <mesh position={[0.08, 1.95, 0.075]} material={holoCrack}>
+          <torusGeometry args={[0.03, 0.007, 8, 20]} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+function Hand({ side }) {
+  const material = side === -1 ? holoDarkRock : holoCore;
+
+  return (
+    <group position={[side * 0.62, 0.64, 0]} rotation={[0, 0, side * 0.25]}>
+      <mesh geometry={HAND_GEOMETRY} material={material} />
+      <mesh geometry={HAND_GEOMETRY} material={wireMaterial} />
+    </group>
+  );
+}
+
+// the group turns around the shoulder, so the whole arm swings like a pendulum
+function Arm({ side, groupRef }) {
+  const material = side === -1 ? holoDarkRock : holoCore;
+  const lineMaterial = side === -1 ? holoPulse : holoDarkRock;
+
+  return (
+    <group ref={groupRef} position={[side * 0.36, 1.5, 0]}>
+      <group position={[side * -0.36, -1.5, 0]}>
+        <BodyPart sections={ARMS[side]} segments={12} material={material} wire />
+        <Hand side={side} />
+        <mesh geometry={ARM_LINES_GEOMETRY[side]} material={lineMaterial} />
+      </group>
+    </group>
+  );
+}
+
+function Leg({ side }) {
+  const x = side * 0.2;
+
+  return (
+    <group>
+      <BodyPart sections={LEGS[side]} segments={12} material={holoCore} wire />
+      <mesh geometry={LEG_LINES_GEOMETRY[side]} material={holoDarkRock} />
+
+      {/* wide blunt foot with a dark sole */}
+      <mesh position={[x, 0.065, 0.07]} scale={[0.135, 0.065, 0.2]} material={holoCore}>
+        <sphereGeometry args={[1, 14, 10]} />
+      </mesh>
+      <mesh position={[x, 0.025, 0.07]} scale={[0.14, 0.025, 0.205]} material={holoDarkRock}>
+        <sphereGeometry args={[1, 14, 10]} />
+      </mesh>
+    </group>
+  );
+}
+
+// ---------- hologram effects ----------
+
+const SPARK_COUNT = 40;
+
+// a repeatable number from 0 to 1, so the sparks always start the same way
+function pseudoRandom(n) {
+  const v = Math.sin(n * 12.9898) * 43758.5453;
+  return v - Math.floor(v);
+}
+
+// small green sparks drifting upwards around him
+function DataSparks() {
+  const points = useRef();
+
+  const data = useMemo(() => {
+    const positions = new Float32Array(SPARK_COUNT * 3);
+    const speeds = new Float32Array(SPARK_COUNT);
+    for (let i = 0; i < SPARK_COUNT; i++) {
+      const angle = pseudoRandom(i) * Math.PI * 2;
+      const radius = 0.5 + pseudoRandom(i + 50) * 0.4;
+      positions[i * 3] = Math.cos(angle) * radius;
+      positions[i * 3 + 1] = pseudoRandom(i + 100) * 2.2;
+      positions[i * 3 + 2] = Math.sin(angle) * radius;
+      speeds[i] = 0.12 + pseudoRandom(i + 150) * 0.2;
+    }
+    return { positions, speeds };
+  }, []);
+
+  useFrame((state, delta) => {
+    if (!points.current) return;
+    const attribute = points.current.geometry.attributes.position;
+    for (let i = 0; i < SPARK_COUNT; i++) {
+      let y = attribute.array[i * 3 + 1] + data.speeds[i] * delta;
+      if (y > 2.3) y = 0.05;
+      attribute.array[i * 3 + 1] = y;
+    }
+    attribute.needsUpdate = true;
+  });
+
+  return (
+    <points ref={points}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[data.positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        color="#9dffb4"
+        size={0.03}
+        transparent
+        opacity={0.8}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// a thin ring of light that sweeps up his body
+function ScanRing() {
+  const ring = useRef();
+
+  useFrame((state) => {
+    if (!ring.current) return;
+    const progress = (state.clock.elapsedTime * 0.35) % 1;
+    ring.current.position.y = progress * 2.2;
+    ring.current.material.opacity = 0.7 * Math.sin(progress * Math.PI);
+  });
+
+  return (
+    <mesh ref={ring} rotation={[Math.PI / 2, 0, 0]}>
+      <torusGeometry args={[0.7, 0.008, 8, 48]} />
+      <meshBasicMaterial
+        color="#9dffb4"
+        transparent
+        opacity={0.6}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+// ---------- the complete alien ----------
+
+export default function Upgrade() {
+  const alien = useRef();
+  const body = useRef();
+  const head = useRef();
+  const leftArm = useRef();
+  const rightArm = useRef();
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+
+    if (alien.current) {
+      // slow sway
+      alien.current.rotation.y = Math.sin(t * 0.4) * 0.12;
+
+      // a very short digital glitch every 4 seconds
+      const glitching = t % 4 < 0.12;
+      alien.current.position.x = glitching ? Math.sin(t * 90) * 0.03 : 0;
+    }
+
+    // breathing
+    if (body.current) {
+      const breath = 1 + Math.sin(t * 1.8) * 0.012;
+      body.current.scale.x = breath;
+      body.current.scale.z = breath;
+    }
+
+    // head tilts and turns a little
+    if (head.current) {
+      head.current.rotation.z = Math.sin(t * 0.6) * 0.03;
+      head.current.rotation.y = Math.sin(t * 0.5) * 0.08;
+    }
+
+    // the long arms swing like pendulums
+    if (leftArm.current) {
+      leftArm.current.rotation.x = Math.sin(t * 0.9) * 0.05;
+      leftArm.current.rotation.z = Math.sin(t * 0.7) * 0.02;
+    }
+    if (rightArm.current) {
+      rightArm.current.rotation.x = Math.sin(t * 0.9 + 1) * 0.05;
+      rightArm.current.rotation.z = Math.sin(t * 0.7 + 1) * -0.02;
+    }
+  });
+
+  return (
+    <group ref={alien} scale={1.15}>
+      <group ref={body}>
+        <Body />
+      </group>
+
+      <Head groupRef={head} />
+
+      <Leg side={-1} />
+      <Leg side={1} />
+
+      <Arm side={-1} groupRef={leftArm} />
+      <Arm side={1} groupRef={rightArm} />
+
+      <DataSparks />
+      <ScanRing />
+    </group>
+  );
+}

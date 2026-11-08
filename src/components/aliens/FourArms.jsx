@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 
-import { sec, BodyPart, Plate, Muscle, Stripe } from "./parts";
+import { sec, BodyPart, Plate, Muscle, Stripe, OmnitrixSymbol } from "./parts";
 import { holoDarkRock, holoBright } from "../hologram/hologramMaterials";
 
 // Four Arms. The feet are at y = 0 and he faces the +z direction.
@@ -92,12 +92,15 @@ function Body() {
       {/* belt */}
       <Plate position={[0, 1.02, 0.17]} scale={[0.16, 0.08, 0.05]} material={holoDarkRock} />
 
+      {/* Omnitrix symbol in the middle of the chest */}
+      <OmnitrixSymbol position={[0, 1.5, 0.3]} size={0.11} />
+
       {/* glowing chest markings */}
       {[-1, 1].map((s) => (
-        <Stripe key={s} position={[s * 0.09, 1.56, 0.31]} rotation={[0, 0, s * 0.5]} size={[0.2, 0.018, 0.012]} />
+        <Stripe key={s} position={[s * 0.2, 1.56, 0.31]} rotation={[0, 0, s * 0.5]} size={[0.2, 0.018, 0.012]} />
       ))}
       {[-1, 1].map((s) => (
-        <Stripe key={s} position={[s * 0.1, 1.46, 0.3]} rotation={[0, 0, s * 0.5]} size={[0.16, 0.018, 0.012]} />
+        <Stripe key={s} position={[s * 0.2, 1.46, 0.3]} rotation={[0, 0, s * 0.5]} size={[0.16, 0.018, 0.012]} />
       ))}
     </group>
   );
