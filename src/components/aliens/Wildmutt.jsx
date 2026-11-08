@@ -131,6 +131,16 @@ const MANE_TUFTS = makeTufts(MANE_ITEMS);
 const BEARD_TUFTS = makeTufts(BEARD_ITEMS);
 const ARM_TUFTS = makeTufts(ARM_ITEMS);
 
+// the tuft of fur on the tip of the tail. The tufts point backwards
+const TAIL_ITEMS = [
+  { x: 0, y: 0, z: -0.04, tiltX: -1.57, size: 0.22 },
+  { x: -0.025, y: 0.01, z: -0.03, tiltX: -1.45, tiltZ: 0.35, size: 0.17 },
+  { x: 0.025, y: 0.01, z: -0.03, tiltX: -1.45, tiltZ: -0.35, size: 0.17 },
+  { x: 0, y: 0.03, z: -0.02, tiltX: -1.3, size: 0.15 },
+  { x: 0, y: -0.03, z: -0.02, tiltX: -1.7, size: 0.15 },
+];
+const TAIL_TUFTS = makeTufts(TAIL_ITEMS);
+
 // ---------- body parts ----------
 
 // the body, laid down along the z axis
@@ -280,6 +290,54 @@ function HindLeg({ side, upperRef, lowerRef }) {
   );
 }
 
+// ---------- the tail ----------
+
+const TAIL_PIECES = 8;
+
+// one piece of the tail. Each piece holds the next piece, so the tail bends like a whip
+function TailPiece({ index }) {
+  const ref = useRef();
+
+  useFrame((state) => {
+    if (!ref.current) return;
+    // the tail first drops a little, then it curls up at the end
+    const bend = index < 3 ? -0.14 : 0.12;
+    const wave = Math.sin(state.clock.elapsedTime * 1.8 - index * 0.5) * 0.14;
+    ref.current.rotation.set(bend, wave, 0);
+  });
+
+  // the piece after the last one is empty
+  if (index >= TAIL_PIECES) return null;
+
+  // thinner towards the tip
+  const size = 0.1 * Math.pow(1 - index / (TAIL_PIECES + 1), 0.9) + 0.015;
+  const isLast = index === TAIL_PIECES - 1;
+
+  return (
+    <group ref={ref}>
+      <mesh position={[0, 0, -0.05]} scale={[size, size * 0.95, 0.085]} material={holoCore}>
+        <sphereGeometry args={[1, 12, 8]} />
+      </mesh>
+
+      {/* a tuft of fur on the tip */}
+      {isLast && <mesh position={[0, 0, -0.1]} geometry={TAIL_TUFTS} material={holoGold} />}
+
+      <group position={[0, 0, -0.1]}>
+        <TailPiece index={index + 1} />
+      </group>
+    </group>
+  );
+}
+
+// the tail starts at the hips, on the back of the body
+function Tail() {
+  return (
+    <group position={[0, 0.66, -0.76]}>
+      <TailPiece index={0} />
+    </group>
+  );
+}
+
 // ---------- the complete alien ----------
 
 export default function Wildmutt() {
@@ -335,6 +393,7 @@ export default function Wildmutt() {
         <Body />
         <mesh geometry={BACK_TUFTS} material={holoGold} />
         <mesh geometry={MANE_TUFTS} material={holoGold} />
+        <Tail />
       </group>
 
       {/* the head turns around the neck */}
