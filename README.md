@@ -1,16 +1,16 @@
-# OMNITRIX X
+# 🟢 OMNITRIX X
 
 ### Transform. Explore. Become.
 
 **OMNITRIX X** is an interactive, Omnitrix-inspired web experience built with React and modern web technologies. Explore alien transformations, interact with holographic 3D models, and experience a digital recreation inspired by the iconic Omnitrix universe.
 
 <p align="center">
-  <strong>One Watch. Infinite Possibilities.</strong>
+  <strong>⚡ One Watch. Infinite Possibilities. ⚡</strong>
 </p>
 
 ---
 
-## About the Project
+## 🌌 About the Project
 
 OMNITRIX X is a fan-inspired project that brings the excitement of alien transformations into a modern interactive web application.
 
@@ -18,20 +18,20 @@ The project focuses on creating an immersive experience with alien models, futur
 
 It is an evolving project, with new aliens, visual improvements, and features being developed.
 
-## Features
+## ✨ Features
 
 - **Omnitrix Interface** – A futuristic interface inspired by the iconic Omnitrix.
 - **Alien Selection** – Explore and select different alien characters.
 - **Transformation Experience** – Interactive transformation effects and animations.
 - **3D Hologram Visuals** – Alien models with holographic visual effects.
 - **Custom Alien Models** – Individual React components for alien characters.
-- **Multiplayer Development** – Real-time communication infrastructure using Socket.IO Client.
+- **Multiplayer Development** – Real-time communication infrastructure using Socket.IO.
 
-## Alien Roster
+## 👾 Alien Roster
 
 The project currently includes the following alien components:
 
-| Alien | Component |
+| Alien | Status |
 |---|---|
 | Heatblast | Implemented |
 | Four Arms | Implemented |
@@ -46,7 +46,7 @@ The project currently includes the following alien components:
 
 *Note: Component availability does not necessarily mean every alien is fully integrated into the transformation experience.*
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Technology | Purpose |
 |---|---|
@@ -59,9 +59,11 @@ The project currently includes the following alien components:
 | Framer Motion | Animations |
 | Lucide React | Icons |
 | CSS | Styling |
-| Socket.IO Client | Real-time client communication |
+| Node.js | Server runtime |
+| Express.js | Backend server |
+| Socket.IO | Real-time communication |
 
-## Getting Started
+## 🚀 Getting Started
 
 Follow these steps to run OMNITRIX X locally.
 
@@ -70,7 +72,7 @@ Follow these steps to run OMNITRIX X locally.
 Make sure you have installed:
 
 - [Node.js](https://nodejs.org/)
-- [npm](https://www.npmjs.com/)
+- npm
 - [Git](https://git-scm.com/)
 
 ### Installation
@@ -105,7 +107,7 @@ Open the local URL displayed in your terminal, usually:
 http://localhost:5173
 ```
 
-## Production Build
+## 🏗️ Production Build
 
 To create a production build:
 
@@ -119,7 +121,7 @@ To preview the production build locally:
 npm run preview
 ```
 
-## Code Quality
+## 🧪 Code Quality
 
 OMNITRIX X uses Oxlint for JavaScript and React code linting.
 
@@ -129,7 +131,7 @@ Run the following command to check your code:
 npm run lint
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
 omnitrix-x/
@@ -149,7 +151,7 @@ omnitrix-x/
 
 *This is a simplified overview of the project structure. Additional files and folders may exist.*
 
-## Development Roadmap
+## 🗺️ Development Roadmap
 
 - [x] Initial Omnitrix interface
 - [x] Alien selection interface
@@ -163,7 +165,7 @@ omnitrix-x/
 - [ ] Improve mobile responsiveness
 - [ ] Add more interactive features
 
-## Contributing
+## 🤝 Contributing
 
 Contributions, ideas, and suggestions are welcome!
 
@@ -176,13 +178,13 @@ If you would like to contribute:
 5. Commit your changes.
 6. Open a Pull Request.
 
-## Disclaimer
+## ⚠️ Disclaimer
 
 OMNITRIX X is an unofficial, fan-inspired project created for educational and entertainment purposes.
 
 Ben 10, the Omnitrix, and their associated characters and trademarks belong to their respective owners. This project is not affiliated with, endorsed by, or sponsored by the official rights holders.
 
-## Developer
+## 👨‍💻 Developer
 
 **Khaja Ameen Uddin**
 
@@ -192,5 +194,5 @@ Ben 10, the Omnitrix, and their associated characters and trademarks belong to t
 ---
 
 <p align="center">
-  Made with passion for the Omnitrix universe.
+  Made with passion for the Omnitrix universe. 🟢
 </p>
