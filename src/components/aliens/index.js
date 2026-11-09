@@ -8,6 +8,7 @@ import Wildmutt from "./Wildmutt";
 import Ripjaws from "./Ripjaws";
 import GreyMatter from "./GreyMatter";
 import Stinkfly from "./Stinkfly";
+import Ghostfreak from "./Ghostfreak";
 
 // This list connects an alien id (from aliens.js) to its 3D model.
 // When we finish a new alien, we add one line here.
@@ -22,6 +23,7 @@ const alienModels = {
   8: Ripjaws,
   9: GreyMatter,
   10: Stinkfly,
+  11: Ghostfreak,
 };
 
 export default alienModels;
