@@ -73,7 +73,7 @@ const fragmentShader = `
 `;
 
 // makes one hologram material
-function makeHoloMaterial({ color, rim, opacity, vertexColors = false, doubleSided = false }) {
+export function makeHoloMaterial({ color, rim, opacity, vertexColors = false, doubleSided = false }) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: holoTime,
