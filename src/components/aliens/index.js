@@ -6,6 +6,7 @@ import Upgrade from "./Upgrade";
 import Cannonbolt from "./Cannonbolt";
 import Wildmutt from "./Wildmutt";
 import Ripjaws from "./Ripjaws";
+import GreyMatter from "./GreyMatter";
 
 // This list connects an alien id (from aliens.js) to its 3D model.
 // When we finish a new alien, we add one line here.
@@ -18,6 +19,7 @@ const alienModels = {
   6: Cannonbolt,
   7: Wildmutt,
   8: Ripjaws,
+  9: GreyMatter,
 };
 
 export default alienModels;
