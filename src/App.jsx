@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -7,23 +6,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Power,
-  Shield,
-  Cpu,
   Activity,
   Atom,
   Users,
-  Copy,
-  LogIn,
-  DoorOpen,
-  Swords,
-  CheckCircle2,
-  Wifi,
 } from "lucide-react";
 
 import aliens from "./data/aliens";
 import Omnitrix3D from "./components/Omnitrix3D";
 import AlienWheel from "./components/AlienWheel";
+import AlienRoster from "./components/AlienRoster";
+import AlienDossier from "./components/AlienDossier";
+import FriendsPanel from "./components/FriendsPanel";
 import "./styles/global.css";
+import "./styles/console.css";
 
 import {
   socket,
@@ -34,6 +29,9 @@ import {
   attack as sendAttack,
   leaveRoom as sendLeaveRoom,
 } from "./multiplayer";
+
+// turns 5 into 05
+const pad = (number) => String(number).padStart(2, "0");
 
 function App() {
   const [showOmnitrixIntro, setShowOmnitrixIntro] = useState(true);
@@ -52,19 +50,10 @@ function App() {
   const [isReady, setIsReady] = useState(false);
   const [battleWinner, setBattleWinner] = useState(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [connected, setConnected] = useState(socket.connected);
 
   const alien = aliens[selectedIndex];
-
-  const myPlayer = room?.players?.find(
-    (player) => player.id === socket.id
-  );
-
-  const opponent = room?.players?.find(
-    (player) => player.id !== socket.id
-  );
-
   const isInBattle = room?.status === "battle";
-  const isRoomOwner = room?.players?.[0]?.id === socket.id;
 
   useEffect(() => {
     function handleRoomUpdated(updatedRoom) {
@@ -147,6 +136,41 @@ function App() {
       socket.off("opponent-left", handleOpponentLeft);
     };
   }, []);
+
+  // keeps the "server connected" badge up to date
+  useEffect(() => {
+    function handleConnect() {
+      setConnected(true);
+    }
+
+    function handleDisconnect() {
+      setConnected(false);
+    }
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+    };
+  }, []);
+
+  // the left and right arrow keys browse the aliens (not while you type in a box)
+  useEffect(() => {
+    function handleKey(event) {
+      if (showOmnitrixIntro) return;
+
+      const tag = event.target?.tagName;
+      if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+
+      if (event.key === "ArrowLeft") selectAlien(selectedIndex - 1);
+      if (event.key === "ArrowRight") selectAlien(selectedIndex + 1);
+    }
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  });
 
   function selectAlien(index) {
     const nextIndex =
@@ -315,44 +339,6 @@ function App() {
     }
   }
 
-  const friendPanelStyle = {
-    margin: "0 0 24px",
-    padding: "20px",
-    border: "1px solid rgba(91, 255, 95, 0.35)",
-    borderRadius: "16px",
-    background:
-      "linear-gradient(135deg, rgba(12, 31, 18, 0.96), rgba(7, 12, 10, 0.96))",
-    boxShadow: "0 0 35px rgba(50, 255, 80, 0.08)",
-    color: "#eaffeb",
-  };
-
-  const fieldStyle = {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: "12px 13px",
-    borderRadius: "9px",
-    border: "1px solid rgba(150, 255, 160, 0.28)",
-    background: "#08110b",
-    color: "#f0fff1",
-    outline: "none",
-    font: "inherit",
-  };
-
-  const actionStyle = {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    padding: "11px 14px",
-    borderRadius: "9px",
-    border: "1px solid rgba(95, 255, 105, 0.45)",
-    background: "rgba(52, 255, 75, 0.12)",
-    color: "#a8ffad",
-    cursor: "pointer",
-    font: "inherit",
-    fontWeight: 700,
-  };
-
   // Show the Omnitrix opening screen before the dashboard.
   if (showOmnitrixIntro) {
     return (
@@ -364,487 +350,112 @@ function App() {
 
   return (
     <main
-      className="app-shell"
+      className="ox-app"
       style={{ "--alien-color": alien.color }}
     >
-      <div className="background-grid" />
-      <div className="background-glow glow-one" />
-      <div className="background-glow glow-two" />
+      <div className="ox-wrap">
+        <header className="ox-topbar">
+          <div className="ox-brand">
+            <div className="ox-brand__mark">
+              <Atom size={22} aria-hidden="true" />
+            </div>
 
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-symbol">
-            <Atom size={29} />
-          </div>
-
-          <div>
-            <h1>
-              OMNITRIX <span>X</span>
-            </h1>
-            <p>ALIEN TRANSFORMATION SYSTEM</p>
-          </div>
-        </div>
-
-        <div className="system-status">
-          <span
-            className={`status-dot ${
-              isPowered ? "" : "offline"
-            }`}
-          />
-
-          <span>
-            {isPowered ? "SYSTEM ONLINE" : "SYSTEM OFFLINE"}
-          </span>
-
-          <span className="version">VER 10.0</span>
-
-          <button
-            type="button"
-            onClick={() =>
-              setShowFriends((current) => !current)
-            }
-            style={actionStyle}
-          >
-            <Users size={16} />
-            {showFriends
-              ? "CLOSE FRIENDS"
-              : "PLAY WITH FRIENDS"}
-          </button>
-        </div>
-      </header>
-
-      {showFriends && (
-        <section
-          style={friendPanelStyle}
-          aria-label="Play with friends"
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
             <div>
-              <p
-                style={{
-                  margin: "0 0 5px",
-                  color: "#8bff96",
-                  fontSize: 11,
-                  letterSpacing: 2,
-                }}
-              >
-                OMNITRIX X / ONLINE MULTIPLAYER
-              </p>
-
-              <h2 style={{ margin: 0, fontSize: 24 }}>
-                Play With Friends
-              </h2>
-
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  color: "#a6b9a8",
-                  fontSize: 13,
-                }}
-              >
-                Create a private room or join your friend's room
-                with a code.
-              </p>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-                color: socket.connected
-                  ? "#9bffa3"
-                  : "#ffd580",
-                fontSize: 12,
-              }}
-            >
-              <Wifi size={16} />
-              {socket.connected
-                ? "SERVER CONNECTED"
-                : "CONNECTING TO SERVER"}
+              <h1 className="ox-brand__name">
+                OMNITRIX <span>X</span>
+              </h1>
+              <p className="ox-label">Alien transformation system</p>
             </div>
           </div>
 
-          {!room ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(230px, 1fr))",
-                gap: 16,
-                marginTop: 20,
-              }}
+          <div className="ox-status">
+            <span className="ox-badge">
+              <span className={isPowered ? "ox-dot" : "ox-dot ox-dot--off"} />
+              {isPowered ? "System online" : "System offline"}
+            </span>
+
+            <button
+              type="button"
+              className="ox-btn"
+              aria-expanded={showFriends}
+              onClick={() => setShowFriends((current) => !current)}
             >
-              <div
-                style={{
-                  display: "grid",
-                  gap: 10,
-                  alignContent: "start",
-                }}
-              >
-                <label
-                  htmlFor="player-name"
-                  style={{ fontSize: 12, color: "#b5c8b7" }}
-                >
-                  YOUR PLAYER NAME
-                </label>
+              <Users size={16} />
+              {showFriends ? "Close friends" : "Play with friends"}
+            </button>
+          </div>
+        </header>
 
-                <input
-                  id="player-name"
-                  value={playerName}
-                  onChange={(event) =>
-                    setPlayerName(event.target.value)
-                  }
-                  maxLength={20}
-                  placeholder="Enter your name"
-                  style={fieldStyle}
-                />
+        {showFriends && (
+          <FriendsPanel
+            connected={connected}
+            myId={socket.id}
+            room={room}
+            playerName={playerName}
+            onPlayerNameChange={setPlayerName}
+            roomCodeInput={roomCodeInput}
+            onRoomCodeChange={setRoomCodeInput}
+            isBusy={isBusy}
+            isReady={isReady}
+            isInBattle={isInBattle}
+            battleWinner={battleWinner}
+            message={multiplayerMessage}
+            error={multiplayerError}
+            onCreate={handleCreateRoom}
+            onJoin={handleJoinRoom}
+            onReady={handleReadyToggle}
+            onAttack={handleAttack}
+            onLeave={handleLeaveRoom}
+            onCopy={copyRoomCode}
+            onClose={() => setShowFriends(false)}
+          />
+        )}
 
-                <button
-                  type="button"
-                  style={actionStyle}
-                  onClick={handleCreateRoom}
-                  disabled={isBusy}
-                >
-                  <Users size={16} />
-                  {isBusy ? "PLEASE WAIT..." : "CREATE ROOM"}
-                </button>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gap: 10,
-                  alignContent: "start",
-                }}
-              >
-                <label
-                  htmlFor="room-code"
-                  style={{ fontSize: 12, color: "#b5c8b7" }}
-                >
-                  FRIEND'S ROOM CODE
-                </label>
-
-                <input
-                  id="room-code"
-                  value={roomCodeInput}
-                  onChange={(event) =>
-                    setRoomCodeInput(
-                      event.target.value.toUpperCase()
-                    )
-                  }
-                  maxLength={6}
-                  placeholder="E.G. A1B2C3"
-                  style={{
-                    ...fieldStyle,
-                    textTransform: "uppercase",
-                    letterSpacing: 3,
-                  }}
-                />
-
-                <button
-                  type="button"
-                  style={actionStyle}
-                  onClick={handleJoinRoom}
-                  disabled={isBusy || !roomCodeInput.trim()}
-                >
-                  <LogIn size={16} />
-                  {isBusy ? "PLEASE WAIT..." : "JOIN ROOM"}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div style={{ marginTop: 20 }}>
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                  gap: 12,
-                  justifyContent: "space-between",
-                }}
-              >
-                <div>
-                  <p
-                    style={{
-                      margin: "0 0 5px",
-                      color: "#b5c8b7",
-                      fontSize: 12,
-                    }}
-                  >
-                    ROOM CODE — SHARE WITH YOUR FRIEND
-                  </p>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <strong
-                      style={{
-                        fontSize: 28,
-                        letterSpacing: 5,
-                        color: "#9bffa3",
-                      }}
-                    >
-                      {room.code}
-                    </strong>
-
-                    <button
-                      type="button"
-                      style={actionStyle}
-                      onClick={copyRoomCode}
-                    >
-                      <Copy size={15} />
-                      COPY CODE
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  style={{
-                    ...actionStyle,
-                    borderColor: "rgba(255, 120, 120, .4)",
-                    color: "#ffaaaa",
-                    background: "rgba(255, 70, 70, .08)",
-                  }}
-                  onClick={handleLeaveRoom}
-                >
-                  <DoorOpen size={15} />
-                  LEAVE ROOM
-                </button>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit, minmax(190px, 1fr))",
-                  gap: 12,
-                  marginTop: 18,
-                }}
-              >
-                {room.players.map((player, index) => (
-                  <div
-                    key={player.id}
-                    style={{
-                      padding: 14,
-                      borderRadius: 11,
-                      border:
-                        "1px solid rgba(140, 255, 150, .18)",
-                      background: "rgba(0, 0, 0, .22)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        color: "#9bffa3",
-                        fontSize: 11,
-                        letterSpacing: 1,
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 7,
-                          height: 7,
-                          borderRadius: "50%",
-                          background: "#65ff75",
-                          display: "inline-block",
-                        }}
-                      />
-                      {index === 0
-                        ? "PLAYER 1 / HOST"
-                        : "PLAYER 2"}
-                    </div>
-
-                    <h3 style={{ margin: "9px 0 5px", fontSize: 18 }}>
-                      {player.name}
-                      {player.id === socket.id ? " (YOU)" : ""}
-                    </h3>
-
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "#a6b9a8",
-                        fontSize: 12,
-                      }}
-                    >
-                      Alien: {player.alien || "Not selected"}
-                    </p>
-
-                    <p
-                      style={{
-                        margin: "7px 0 0",
-                        color: player.ready
-                          ? "#9bffa3"
-                          : "#ffd580",
-                        fontSize: 12,
-                      }}
-                    >
-                      {player.ready ? "READY" : "NOT READY"}
-                    </p>
-                  </div>
-                ))}
-
-                {room.players.length < 2 && (
-                  <div
-                    style={{
-                      padding: 14,
-                      borderRadius: 11,
-                      border: "1px dashed rgba(140, 255, 150, .25)",
-                      display: "grid",
-                      alignContent: "center",
-                      color: "#a6b9a8",
-                      fontSize: 13,
-                    }}
-                  >
-                    Waiting for your friend to join...
-                  </div>
-                )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  marginTop: 16,
-                }}
-              >
-                {!isInBattle && (
-                  <button
-                    type="button"
-                    style={actionStyle}
-                    onClick={handleReadyToggle}
-                  >
-                    <CheckCircle2 size={16} />
-                    {isReady ? "CANCEL READY" : "I'M READY"}
-                  </button>
-                )}
-
-                {isInBattle && room.players.length === 2 && (
-                  <button
-                    type="button"
-                    style={actionStyle}
-                    onClick={handleAttack}
-                  >
-                    <Swords size={16} />
-                    ATTACK OPPONENT (-10 HP)
-                  </button>
-                )}
-
-                {isInBattle && (
-                  <span
-                    style={{
-                      alignSelf: "center",
-                      color: "#9bffa3",
-                      fontSize: 13,
-                    }}
-                  >
-                    BATTLE IN PROGRESS
-                  </span>
-                )}
-              </div>
-
-              {room.status === "finished" && battleWinner && (
-                <h3
-                  style={{ color: "#9bffa3", marginBottom: 0 }}
-                >
-                  {battleWinner.winnerId === socket.id
-                    ? "VICTORY!"
-                    : `${battleWinner.winnerName} WINS!`}
-                </h3>
-              )}
-            </div>
-          )}
-
-          {multiplayerMessage && (
-            <p
-              role="status"
-              style={{
-                margin: "16px 0 0",
-                color: "#9bffa3",
-                fontSize: 13,
-              }}
-            >
-              {multiplayerMessage}
-            </p>
-          )}
-
-          {multiplayerError && (
-            <p
-              role="alert"
-              style={{
-                margin: "12px 0 0",
-                color: "#ff9b9b",
-                fontSize: 13,
-              }}
-            >
-              {multiplayerError}
-            </p>
-          )}
-
-          <p
-            style={{
-              margin: "16px 0 0",
-              color: "#718574",
-              fontSize: 11,
-            }}
-          >
-            Local testing: both players can test on this computer
-            using separate browser tabs. Friends on other computers
-            will need the server deployed or network access configured.
-          </p>
-        </section>
-      )}
-
-      <section className="dashboard">
-        <div className="section-heading">
+        <div className="ox-pagehead">
           <div>
-            <p className="eyebrow">ALIEN DATABASE / 001—{String(aliens.length).padStart(3, "0")}</p>
-            <h2>
-              Choose Your <span>Alien</span>
+            <p className="ox-label">
+              Alien database / 001—{String(aliens.length).padStart(3, "0")}
+            </p>
+            <h2 className="ox-title">
+              Choose your <span>alien</span>
             </h2>
           </div>
 
-          <button className="reset-button" onClick={resetOmnitrix}>
+          <button type="button" className="ox-btn" onClick={resetOmnitrix}>
             <RotateCcw size={15} />
-            RESET
+            Reset
           </button>
         </div>
 
-        <div className="main-layout">
-          <section className="dial-section">
-            <div className="dial-label">
-              <span>OMNITRIX ALIEN SELECTOR</span>
-              <span className="dial-coordinates">
-                {String(selectedIndex + 1).padStart(2, "0")} / {String(aliens.length).padStart(2, "0")}
-              </span>
-            </div>
+        <div className="ox-console">
+          <AlienRoster
+            aliens={aliens}
+            selectedIndex={selectedIndex}
+            onSelect={selectAlien}
+          />
 
-            <AlienWheel
-              aliens={aliens}
-              selectedIndex={selectedIndex}
-              onSelect={selectAlien}
-            />
+          <div className="ox-center">
+            <section className="ox-viewport ox-panel" aria-label="Alien selector">
+              <div className="ox-panel__head">
+                <span className="ox-label">Omnitrix alien selector</span>
+                <span className="ox-counter">
+                  {pad(selectedIndex + 1)} / {pad(aliens.length)}
+                </span>
+              </div>
 
-            <div className="dial-controls">
+              <div className="ox-viewport__stage">
+                <AlienWheel
+                  aliens={aliens}
+                  selectedIndex={selectedIndex}
+                  onSelect={selectAlien}
+                />
+              </div>
+            </section>
+
+            <div className="ox-actions">
               <button
-                className="round-control"
+                type="button"
+                className="ox-btn ox-btn--icon"
                 onClick={() => selectAlien(selectedIndex - 1)}
                 aria-label="Previous alien"
               >
@@ -852,32 +463,36 @@ function App() {
               </button>
 
               <button
-                className={`transform-button ${
-                  isTransformed ? "revert" : ""
-                }`}
+                type="button"
+                className={
+                  isTransformed
+                    ? "ox-btn ox-btn--warn"
+                    : "ox-btn ox-btn--primary"
+                }
                 onClick={transform}
                 disabled={!isPowered || isTransforming}
               >
                 {isTransforming ? (
                   <>
                     <Activity size={19} className="spin-icon" />
-                    TRANSFORMING...
+                    Transforming...
                   </>
                 ) : isTransformed ? (
                   <>
                     <RotateCcw size={19} />
-                    REVERT FORM
+                    Revert form
                   </>
                 ) : (
                   <>
                     <Zap size={19} fill="currentColor" />
-                    TRANSFORM
+                    Transform
                   </>
                 )}
               </button>
 
               <button
-                className="round-control"
+                type="button"
+                className="ox-btn ox-btn--icon"
                 onClick={() => selectAlien(selectedIndex + 1)}
                 aria-label="Next alien"
               >
@@ -885,108 +500,32 @@ function App() {
               </button>
             </div>
 
-            <div className="transform-status">
-              <span
-                className={`status-dot ${
-                  isTransformed ? "transformed-dot" : ""
-                }`}
-              />
-
+            <p className="ox-state" role="status">
+              <span className={isTransformed ? "ox-dot" : "ox-dot ox-dot--idle"} />
               {isTransforming
-                ? "DNA SEQUENCE ACTIVATING"
+                ? "DNA sequence activating"
                 : isTransformed
-                  ? `TRANSFORMED: ${alien.name.toUpperCase()}`
-                  : "AWAITING TRANSFORMATION"}
-            </div>
-          </section>
+                  ? `Transformed: ${alien.name}`
+                  : isPowered
+                    ? "Awaiting transformation"
+                    : "System offline"}
+            </p>
 
-          <aside className="alien-details panel">
-            <div className="panel-heading">
-              <span>ALIEN PROFILE</span>
-              <Shield size={16} />
-            </div>
+            <p className="ox-hint">Tip: use the left and right arrow keys to browse the aliens.</p>
+          </div>
 
-            <div className="profile-content">
-              <div className="alien-type">
-                <span className="type-line" />
-                {alien.type} CLASS
-              </div>
-
-              <h2 className="alien-title">{alien.name}</h2>
-              <p className="alien-description">
-                {alien.description}
-              </p>
-
-              <div className="identity-grid">
-                <div className="identity-item">
-                  <span>SPECIES</span>
-                  <strong>{alien.species}</strong>
-                </div>
-
-                <div className="identity-item">
-                  <span>HOME PLANET</span>
-                  <strong>{alien.home}</strong>
-                </div>
-              </div>
-
-              <div className="detail-divider" />
-
-              <div className="abilities-heading">
-                <Cpu size={15} />
-                <span>KNOWN ABILITIES</span>
-              </div>
-
-              <div className="ability-list">
-                {alien.abilities.map((ability) => (
-                  <div className="ability-item" key={ability}>
-                    <span className="ability-check">+</span>
-                    {ability}
-                  </div>
-                ))}
-              </div>
-
-              <div className="detail-divider" />
-
-              <div className="stats-heading">
-                <span>POWER ANALYSIS</span>
-                <Activity size={15} />
-              </div>
-
-              {Object.entries(alien.stats).map(([stat, value]) => (
-                <div className="stat-row" key={stat}>
-                  <div className="stat-label">
-                    <span>{stat.toUpperCase()}</span>
-                    <strong>{value}%</strong>
-                  </div>
-
-                  <div className="stat-track">
-                    <motion.div
-                      className="stat-fill"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${value}%` }}
-                      transition={{ duration: 0.5 }}
-                      style={{ backgroundColor: alien.color }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </aside>
+          <AlienDossier alien={alien} />
         </div>
 
-        <footer className="bottom-bar">
-          <div>
-            <span className="footer-mark">X</span> OMNITRIX X
-            <span className="footer-muted"> / ALIEN SYSTEM</span>
-          </div>
-
-          <div className="footer-center">
-            DNA SIGNATURE:{" "}
-            <strong>{alien.name.toUpperCase()}</strong>
-          </div>
+        <footer className="ox-footer">
+          <span className="ox-label">
+            DNA signature: <strong>{alien.name}</strong>
+          </span>
 
           <button
-            className={`power-button ${isPowered ? "on" : ""}`}
+            type="button"
+            className="ox-btn"
+            aria-pressed={isPowered}
             onClick={() => {
               setIsPowered(!isPowered);
               setIsTransformed(false);
@@ -994,15 +533,16 @@ function App() {
             }}
           >
             <Power size={15} />
-            {isPowered ? "POWER ON" : "POWER OFF"}
+            {isPowered ? "Power on" : "Power off"}
           </button>
         </footer>
-      </section>
+      </div>
 
       <AnimatePresence>
         {isTransforming && (
           <motion.div
             className="transform-overlay"
+            role="status"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
