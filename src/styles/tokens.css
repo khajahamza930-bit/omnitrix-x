@@ -1,0 +1,246 @@
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+/* OMNITRIX X design system.
+   Everything here starts with "ox-", so it cannot clash with the old styles.
+   Idea: a device console. Chamfered corners, thin lines, and green only for things that are active. */
+
+:root {
+  /* surfaces, from the darkest to the lightest */
+  --ox-bg: #070b09;
+  --ox-surface: #0d1410;
+  --ox-surface-2: #131c17;
+  --ox-line: #22302a;
+  --ox-line-strong: #34493f;
+
+  /* text */
+  --ox-text: #e8efe9;
+  --ox-text-dim: #93a69b;
+
+  /* Omnitrix green. Use it only for selected, active and main actions */
+  --ox-green: #8bff3a;
+  --ox-green-dim: #3f9a1c;
+
+  /* status colors. Use them only for warnings and errors */
+  --ox-warn: #ffb020;
+  --ox-danger: #ff5a4d;
+
+  /* fonts */
+  --ox-font-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --ox-font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+
+  /* text sizes */
+  --ox-text-xs: 0.75rem;
+  --ox-text-sm: 0.875rem;
+  --ox-text-md: 1rem;
+  --ox-text-lg: 1.25rem;
+  --ox-text-xl: 1.75rem;
+  --ox-text-2xl: 2.5rem;
+
+  /* spacing, in steps of 4px */
+  --ox-space-1: 4px;
+  --ox-space-2: 8px;
+  --ox-space-3: 12px;
+  --ox-space-4: 16px;
+  --ox-space-5: 24px;
+  --ox-space-6: 32px;
+  --ox-space-7: 48px;
+
+  /* how big the cut corner is */
+  --ox-cut: 12px;
+}
+
+/* ---------- base ---------- */
+
+body {
+  font-family: var(--ox-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--ox-font-display);
+  letter-spacing: 0.02em;
+}
+
+/* a clear outline when you use the keyboard */
+:focus-visible {
+  outline: 2px solid var(--ox-green);
+  outline-offset: 3px;
+}
+
+/* ---------- panel: a box with a cut corner and a thin line ---------- */
+
+.ox-panel {
+  position: relative;
+  isolation: isolate;
+  background: var(--ox-line-strong);
+  clip-path: polygon(
+    var(--ox-cut) 0,
+    100% 0,
+    100% calc(100% - var(--ox-cut)),
+    calc(100% - var(--ox-cut)) 100%,
+    0 100%,
+    0 var(--ox-cut)
+  );
+}
+
+/* the inside of the panel, 1px smaller, so the outside shows as a thin line */
+.ox-panel::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--ox-surface);
+  clip-path: polygon(
+    calc(var(--ox-cut) - 0.5px) 0,
+    100% 0,
+    100% calc(100% - var(--ox-cut) + 0.5px),
+    calc(100% - var(--ox-cut) + 0.5px) 100%,
+    0 100%,
+    0 calc(var(--ox-cut) - 0.5px)
+  );
+}
+
+/* ---------- button ---------- */
+
+.ox-btn {
+  --ox-cut: 8px;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ox-space-2);
+  min-height: 44px;
+  padding: 0 var(--ox-space-5);
+  border: 0;
+  background: var(--ox-line-strong);
+  color: var(--ox-text);
+  font: 600 var(--ox-text-sm) / 1 var(--ox-font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(
+    var(--ox-cut) 0,
+    100% 0,
+    100% calc(100% - var(--ox-cut)),
+    calc(100% - var(--ox-cut)) 100%,
+    0 100%,
+    0 var(--ox-cut)
+  );
+  transition: color 0.15s;
+}
+
+.ox-btn::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--ox-surface-2);
+  clip-path: polygon(
+    calc(var(--ox-cut) - 0.5px) 0,
+    100% 0,
+    100% calc(100% - var(--ox-cut) + 0.5px),
+    calc(100% - var(--ox-cut) + 0.5px) 100%,
+    0 100%,
+    0 calc(var(--ox-cut) - 0.5px)
+  );
+  transition: background 0.15s;
+}
+
+.ox-btn:hover:not(:disabled)::before {
+  background: var(--ox-line-strong);
+}
+
+/* the main action of a screen */
+.ox-btn--primary {
+  background: var(--ox-green);
+  color: var(--ox-green);
+}
+
+.ox-btn--primary:hover:not(:disabled) {
+  color: var(--ox-bg);
+}
+
+.ox-btn--primary:hover:not(:disabled)::before {
+  background: var(--ox-green);
+}
+
+/* a dangerous action, like leaving a room */
+.ox-btn--danger {
+  background: var(--ox-danger);
+  color: var(--ox-danger);
+}
+
+.ox-btn--danger:hover:not(:disabled) {
+  color: var(--ox-bg);
+}
+
+.ox-btn--danger:hover:not(:disabled)::before {
+  background: var(--ox-danger);
+}
+
+.ox-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* the cut corners would hide the outline, so on focus the button shows a plain outline */
+.ox-btn:focus-visible {
+  clip-path: none;
+}
+
+/* ---------- small pieces ---------- */
+
+/* a small heading for a group of information */
+.ox-label {
+  font: 500 var(--ox-text-xs) / 1.2 var(--ox-font-display);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ox-text-dim);
+}
+
+/* a small tag, like FIRE or POWER */
+.ox-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid var(--ox-line-strong);
+  font: 600 var(--ox-text-xs) / 1 var(--ox-font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ox-green);
+}
+
+/* a bar made of small cells, like a battery.
+   Use it like this: <div class="ox-cells" style="--value: 75"></div> */
+.ox-cells {
+  --cell: 9px;
+  height: 10px;
+  background:
+    linear-gradient(var(--ox-green), var(--ox-green)) 0 0 / calc(var(--value, 0) * 1%) 100% no-repeat,
+    var(--ox-line);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 calc(var(--cell) - 2px), transparent 0 var(--cell));
+  mask: repeating-linear-gradient(90deg, #000 0 calc(var(--cell) - 2px), transparent 0 var(--cell));
+}
+
+/* ---------- for people who turn animations off ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
