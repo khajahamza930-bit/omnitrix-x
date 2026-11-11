@@ -1,9 +1,39 @@
-
 import { io } from "socket.io-client";
 
-const SERVER_URL = "http://localhost:3001";
+const configuredServerUrl = import.meta.env.VITE_SERVER_URL?.trim();
 
-export const socket = io(SERVER_URL, {
+const SERVER_URL =
+  configuredServerUrl ||
+  (import.meta.env.DEV ? "http://localhost:3001" : null);
+
+if (!SERVER_URL) {
+  throw new Error(
+    "Missing VITE_SERVER_URL. Configure the multiplayer backend URL before deploying."
+  );
+}
+
+let parsedServerUrl;
+
+try {
+  parsedServerUrl = new URL(SERVER_URL);
+} catch {
+  throw new Error("VITE_SERVER_URL must be a valid absolute URL.");
+}
+
+if (
+  !["http:", "https:"].includes(parsedServerUrl.protocol) ||
+  parsedServerUrl.username ||
+  parsedServerUrl.password ||
+  parsedServerUrl.pathname !== "/" ||
+  parsedServerUrl.search ||
+  parsedServerUrl.hash
+) {
+  throw new Error(
+    "VITE_SERVER_URL must be an HTTP(S) server origin without credentials, path, query, or hash."
+  );
+}
+
+export const socket = io(parsedServerUrl.origin, {
   autoConnect: true,
 });
 

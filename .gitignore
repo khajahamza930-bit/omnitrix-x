@@ -29,3 +29,6 @@ dist-ssr
 !.env.example
 **/.env
 **/.env.*
+
+# Keep safe environment templates tracked
+!**/.env.example

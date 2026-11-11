@@ -1,10 +1,12 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "OMNITRIX X multiplayer backend",
+  "main": "server.js",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
