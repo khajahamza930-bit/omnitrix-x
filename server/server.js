@@ -82,6 +82,7 @@ function getPublicRoom(room) {
       health: player.health,
     })),
     status: room.status,
+    currentTurnPlayerId: room.currentTurnPlayerId ?? null,
   };
 }
 
@@ -138,6 +139,7 @@ io.on("connection", (socket) => {
         },
       ],
       status: "waiting",
+      currentTurnPlayerId: null,
     };
 
     rooms.set(code, room);
@@ -249,6 +251,8 @@ io.on("connection", (socket) => {
       room.players.every((item) => item.ready)
     ) {
       room.status = "battle";
+      room.currentTurnPlayerId = room.players[0].id;
+
       io.to(room.code).emit("battle-started", getPublicRoom(room));
     }
 
@@ -273,10 +277,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("attack", (payload, callback) => {
-    if (!allowEvent(socket, "attack", 1, 800)) {
-      return rejectRateLimit(socket, "attack", callback);
-    }
-
     const room = rooms.get(socket.data.roomCode);
 
     if (!room || room.status !== "battle") {
@@ -303,9 +303,29 @@ io.on("connection", (socket) => {
       });
     }
 
+    if (room.currentTurnPlayerId !== attacker.id) {
+      return acknowledge(callback, {
+        success: false,
+        message: "It is not your turn.",
+      });
+    }
+
+    if (!allowEvent(socket, "attack", 1, 800)) {
+      return rejectRateLimit(socket, "attack", callback);
+    }
+
     // Damage is determined by the server, never by client input.
     const actualDamage = 10;
     defender.health = Math.max(0, defender.health - actualDamage);
+
+    const battleFinished = defender.health <= 0;
+
+    if (battleFinished) {
+      room.status = "finished";
+      room.currentTurnPlayerId = null;
+    } else {
+      room.currentTurnPlayerId = defender.id;
+    }
 
     io.to(room.code).emit("battle-updated", {
       room: getPublicRoom(room),
@@ -314,16 +334,19 @@ io.on("connection", (socket) => {
       damage: actualDamage,
     });
 
-    if (defender.health <= 0) {
-      room.status = "finished";
-
+    if (battleFinished) {
       io.to(room.code).emit("battle-finished", {
         winnerId: attacker.id,
         winnerName: attacker.name,
       });
     }
 
-    acknowledge(callback, { success: true });
+    acknowledge(callback, {
+      success: true,
+      damage: actualDamage,
+      currentTurnPlayerId: room.currentTurnPlayerId,
+      status: room.status,
+    });
   });
 
   socket.on("leave-room", () => {
@@ -356,6 +379,7 @@ io.on("connection", (socket) => {
     }
 
     room.status = "waiting";
+    room.currentTurnPlayerId = null;
 
     room.players.forEach((player) => {
       player.ready = false;

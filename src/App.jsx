@@ -55,6 +55,16 @@ function App() {
   const alien = aliens[selectedIndex];
   const isInBattle = room?.status === "battle";
 
+  const currentTurnPlayer = room?.players?.find(
+    (player) => player.id === room.currentTurnPlayerId
+  );
+
+  const canAttack =
+    isInBattle &&
+    room?.currentTurnPlayerId === socket.id;
+
+  const currentTurnName = currentTurnPlayer?.name || "Opponent";
+
   useEffect(() => {
     function handleRoomUpdated(updatedRoom) {
       setRoom(updatedRoom);
@@ -398,6 +408,8 @@ function App() {
             isBusy={isBusy}
             isReady={isReady}
             isInBattle={isInBattle}
+            canAttack={canAttack}
+            currentTurnName={currentTurnName}
             battleWinner={battleWinner}
             message={multiplayerMessage}
             error={multiplayerError}

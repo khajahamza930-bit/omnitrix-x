@@ -13,6 +13,8 @@ function FriendsPanel({
   isBusy,
   isReady,
   isInBattle,
+  canAttack,
+  currentTurnName,
   battleWinner,
   message,
   error,
@@ -142,14 +144,12 @@ function FriendsPanel({
                     {player.ready ? "Ready" : "Not ready"}
                   </span>
 
-                  {/* the health bar only shows if the server sends a number called hp.
-                      It assumes the most health is 100. I will check this against server.js */}
-                  {typeof player.hp === "number" && (
+                  {typeof player.health === "number" && (
                     <div>
-                      <span className="ox-label">HP {player.hp}</span>
+                      <span className="ox-label">HP {player.health}</span>
                       <div
                         className="ox-cells"
-                        style={{ "--value": Math.max(0, Math.min(100, player.hp)) }}
+                        style={{ "--value": Math.max(0, Math.min(100, player.health)) }}
                       />
                     </div>
                   )}
@@ -170,10 +170,23 @@ function FriendsPanel({
               )}
 
               {isInBattle && room.players.length === 2 && (
-                <button type="button" className="ox-btn ox-btn--primary" onClick={onAttack}>
-                  <Swords size={16} />
-                  Attack opponent (-10 HP)
-                </button>
+                <>
+                  <span className="ox-tag">
+                    {canAttack
+                      ? "Your turn"
+                      : `${currentTurnName || "Opponent"}'s turn`}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="ox-btn ox-btn--primary"
+                    onClick={onAttack}
+                    disabled={!canAttack}
+                  >
+                    <Swords size={16} />
+                    {canAttack ? "Attack opponent (-10 HP)" : "Waiting for opponent"}
+                  </button>
+                </>
               )}
 
               {isInBattle && <span className="ox-tag">Battle in progress</span>}
