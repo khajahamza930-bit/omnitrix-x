@@ -49,11 +49,34 @@ function App() {
   const [multiplayerError, setMultiplayerError] = useState("");
   const [isReady, setIsReady] = useState(false);
   const [battleWinner, setBattleWinner] = useState(null);
+  const [selectedMoveId, setSelectedMoveId] = useState("");
   const [isBusy, setIsBusy] = useState(false);
   const [connected, setConnected] = useState(socket.connected);
 
   const alien = aliens[selectedIndex];
   const isInBattle = room?.status === "battle";
+
+  const currentTurnPlayer = room?.players?.find(
+    (player) => player.id === room.currentTurnPlayerId
+  );
+
+  const canAttack =
+    isInBattle &&
+    room?.currentTurnPlayerId === socket.id;
+
+  const currentTurnName = currentTurnPlayer?.name || "Opponent";
+
+  const myPlayer = room?.players?.find(
+    (player) => player.id === socket.id
+  );
+
+  const availableMoves = myPlayer?.moves || [];
+
+  const selectedMove =
+    availableMoves.find((move) => move.id === selectedMoveId) ||
+    availableMoves.find((move) => move.type === "basic") ||
+    availableMoves[0] ||
+    null;
 
   useEffect(() => {
     function handleRoomUpdated(updatedRoom) {
@@ -91,6 +114,19 @@ function App() {
     function handleBattleUpdated(payload) {
       if (payload?.room) {
         setRoom(payload.room);
+      }
+
+      if (payload?.attackName && payload?.attackerId) {
+        const attacker = payload.attackerId === socket.id
+          ? "You"
+          : payload.room?.players?.find(
+              (player) => player.id === payload.attackerId
+            )?.name || "Opponent";
+
+        setMultiplayerMessage(
+          `${attacker} used ${payload.attackName} for ${payload.damage} damage.`
+        );
+        setMultiplayerError("");
       }
     }
 
@@ -219,7 +255,8 @@ function App() {
       }
 
       const result = await createRoom(
-        playerName.trim() || "Player 1"
+        playerName.trim() || "Player 1",
+        alien.name
       );
 
       if (!result?.success) {
@@ -256,7 +293,8 @@ function App() {
 
       const result = await joinRoom(
         roomCodeInput.trim().toUpperCase(),
-        playerName.trim() || "Player 2"
+        playerName.trim() || "Player 2",
+        alien.name
       );
 
       if (!result?.success) {
@@ -295,16 +333,23 @@ function App() {
     );
   }
 
-  async function handleAttack() {
+  async function handleAttack(moveId) {
+    if (!moveId || !canAttack) return;
+
     setMultiplayerError("");
 
-    const result = await sendAttack();
+    const result = await sendAttack(moveId);
 
     if (!result?.success) {
       setMultiplayerError(
         result?.message || "Attack failed."
       );
+      return;
     }
+
+    setMultiplayerMessage(
+      `${result.attackName} dealt ${result.damage} damage.`
+    );
   }
 
   function handleLeaveRoom() {
@@ -398,13 +443,18 @@ function App() {
             isBusy={isBusy}
             isReady={isReady}
             isInBattle={isInBattle}
+            canAttack={canAttack}
+            currentTurnName={currentTurnName}
+            availableMoves={availableMoves}
+            selectedMoveId={selectedMove?.id || ""}
+            onMoveSelect={setSelectedMoveId}
             battleWinner={battleWinner}
             message={multiplayerMessage}
             error={multiplayerError}
             onCreate={handleCreateRoom}
             onJoin={handleJoinRoom}
             onReady={handleReadyToggle}
-            onAttack={handleAttack}
+            onAttack={() => handleAttack(selectedMove?.id)}
             onLeave={handleLeaveRoom}
             onCopy={copyRoomCode}
             onClose={() => setShowFriends(false)}

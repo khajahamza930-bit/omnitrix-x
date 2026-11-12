@@ -1,21 +1,51 @@
-
 import { io } from "socket.io-client";
 
-const SERVER_URL = "http://localhost:3001";
+const configuredServerUrl = import.meta.env.VITE_SERVER_URL?.trim();
 
-export const socket = io(SERVER_URL, {
+const SERVER_URL =
+  configuredServerUrl ||
+  (import.meta.env.DEV ? "http://localhost:3001" : null);
+
+if (!SERVER_URL) {
+  throw new Error(
+    "Missing VITE_SERVER_URL. Configure the multiplayer backend URL before deploying."
+  );
+}
+
+let parsedServerUrl;
+
+try {
+  parsedServerUrl = new URL(SERVER_URL);
+} catch {
+  throw new Error("VITE_SERVER_URL must be a valid absolute URL.");
+}
+
+if (
+  !["http:", "https:"].includes(parsedServerUrl.protocol) ||
+  parsedServerUrl.username ||
+  parsedServerUrl.password ||
+  parsedServerUrl.pathname !== "/" ||
+  parsedServerUrl.search ||
+  parsedServerUrl.hash
+) {
+  throw new Error(
+    "VITE_SERVER_URL must be an HTTP(S) server origin without credentials, path, query, or hash."
+  );
+}
+
+export const socket = io(parsedServerUrl.origin, {
   autoConnect: true,
 });
 
-export function createRoom(name) {
+export function createRoom(name, alien) {
   return new Promise((resolve) => {
-    socket.emit("create-room", { name }, resolve);
+    socket.emit("create-room", { name, alien }, resolve);
   });
 }
 
-export function joinRoom(code, name) {
+export function joinRoom(code, name, alien) {
   return new Promise((resolve) => {
-    socket.emit("join-room", { code, name }, resolve);
+    socket.emit("join-room", { code, name, alien }, resolve);
   });
 }
 
@@ -27,9 +57,9 @@ export function selectAlien(alien) {
   socket.emit("select-alien", { alien });
 }
 
-export function attack() {
+export function attack(moveId) {
   return new Promise((resolve) => {
-    socket.emit("attack", {}, resolve);
+    socket.emit("attack", { moveId }, resolve);
   });
 }
 
