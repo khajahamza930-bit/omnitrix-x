@@ -199,6 +199,7 @@ test("multiplayer server enforces room and battle rules", async (t) => {
     });
 
     assert.equal(created.success, true);
+    assert.equal(created.room.players[0].energy, 50);
     assert.match(created.room.code, /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/);
 
     const duplicateRoom = await emitAck(playerOne, "create-room", {
@@ -230,6 +231,7 @@ test("multiplayer server enforces room and battle rules", async (t) => {
 
     assert.equal(joined.success, true);
     assert.equal(joined.room.players.length, 2);
+    assert.equal(joined.room.players[1].energy, 50);
 
     // A third player cannot enter a full room.
     const fullRoom = await emitAck(playerThree, "join-room", {
@@ -271,6 +273,8 @@ test("multiplayer server enforces room and battle rules", async (t) => {
     assert.equal(readyRoom.players.every((player) => player.ready), true);
 
     assert.equal(readyRoom.currentTurnPlayerId, playerOne.id);
+    assert.equal(readyRoom.players[0].energy, 60);
+    assert.equal(readyRoom.players[1].energy, 50);
 
     const outsiderAttack = await emitAck(playerThree, "attack", {
       damage: 999999,
@@ -292,24 +296,45 @@ test("multiplayer server enforces room and battle rules", async (t) => {
     // Player One attacks first. Client-supplied damage is ignored.
     const firstBattleUpdate = waitForEvent(playerOne, "battle-updated");
 
+    const invalidAlienMove = await emitAck(playerOne, "attack", {
+      moveId: "titan-smash",
+      damage: 999999,
+    });
+
+    assert.equal(invalidAlienMove.success, false);
+    assert.match(invalidAlienMove.message, /invalid attack/i);
+
+    // The invalid request also consumes the existing attack rate limit.
+    await delay(850);
+
     const firstAttack = await emitAck(playerOne, "attack", {
+      moveId: "fireball",
       damage: 999999,
     });
 
     assert.equal(firstAttack.success, true);
-    assert.equal(firstAttack.damage, 10);
+    assert.equal(firstAttack.damage, 20);
+    assert.equal(firstAttack.attackId, "fireball");
+    assert.equal(firstAttack.attackName, "Fireball");
     assert.equal(firstAttack.currentTurnPlayerId, playerTwo.id);
 
     const firstBattle = await firstBattleUpdate;
 
-    assert.equal(firstBattle.damage, 10);
+    assert.equal(firstBattle.damage, 20);
+    assert.equal(firstBattle.attackId, "fireball");
+    assert.equal(firstBattle.attackType, "special");
     assert.equal(firstBattle.room.currentTurnPlayerId, playerTwo.id);
 
     const firstDefender = firstBattle.room.players.find(
       (player) => player.id === playerTwo.id
     );
 
-    assert.equal(firstDefender.health, 90);
+    assert.equal(firstDefender.health, 80);
+    assert.equal(firstBattle.room.players.find(
+      (player) => player.id === playerOne.id
+    ).energy, 40);
+    assert.equal(firstDefender.energy, 60);
+    assert.equal(firstAttack.remainingEnergy, 40);
 
     // Player One cannot attack twice because the turn has passed.
     const repeatedAttack = await emitAck(playerOne, "attack", {
@@ -339,7 +364,8 @@ test("multiplayer server enforces room and battle rules", async (t) => {
     });
 
     assert.equal(secondAttack.success, true);
-    assert.equal(secondAttack.damage, 10);
+    assert.equal(secondAttack.damage, 12);
+    assert.equal(secondAttack.attackId, "fire-punch");
     assert.equal(secondAttack.currentTurnPlayerId, playerOne.id);
 
     const secondBattle = await secondBattleUpdate;
@@ -350,12 +376,18 @@ test("multiplayer server enforces room and battle rules", async (t) => {
       (player) => player.id === playerOne.id
     );
 
-    assert.equal(firstPlayerHealth.health, 90);
+    assert.equal(firstPlayerHealth.health, 88);
+    assert.equal(secondBattle.room.players.find(
+      (player) => player.id === playerOne.id
+    ).energy, 50);
+    assert.equal(secondBattle.room.players.find(
+      (player) => player.id === playerTwo.id
+    ).energy, 60);
 
     // Continue alternating valid turns until the server declares a winner.
     const battleFinished = waitForEvent(playerOne, "battle-finished", 30000);
 
-    for (let attackNumber = 3; attackNumber <= 19; attackNumber += 1) {
+    for (let attackNumber = 3; attackNumber <= 15; attackNumber += 1) {
       await delay(850);
 
       const attackingSocket =
@@ -371,13 +403,13 @@ test("multiplayer server enforces room and battle rules", async (t) => {
       });
 
       assert.equal(result.success, true);
-      assert.equal(result.damage, 10);
+      assert.equal(result.damage, 12);
 
       const update = await updatePromise;
 
-      assert.equal(update.damage, 10);
+      assert.equal(update.damage, 12);
 
-      if (attackNumber < 19) {
+      if (attackNumber < 15) {
         assert.equal(update.room.currentTurnPlayerId, expectedTurn);
       } else {
         assert.equal(update.room.status, "finished");
@@ -412,6 +444,7 @@ test("multiplayer server enforces room and battle rules", async (t) => {
     assert.equal(resetRoom.players.length, 1);
     assert.equal(resetRoom.players[0].ready, false);
     assert.equal(resetRoom.players[0].health, 100);
+    assert.equal(resetRoom.players[0].energy, 50);
 
     const rejoined = await emitAck(playerTwo, "join-room", {
       code: created.room.code,

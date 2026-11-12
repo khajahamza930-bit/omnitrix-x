@@ -37,15 +37,15 @@ export const socket = io(parsedServerUrl.origin, {
   autoConnect: true,
 });
 
-export function createRoom(name) {
+export function createRoom(name, alien) {
   return new Promise((resolve) => {
-    socket.emit("create-room", { name }, resolve);
+    socket.emit("create-room", { name, alien }, resolve);
   });
 }
 
-export function joinRoom(code, name) {
+export function joinRoom(code, name, alien) {
   return new Promise((resolve) => {
-    socket.emit("join-room", { code, name }, resolve);
+    socket.emit("join-room", { code, name, alien }, resolve);
   });
 }
 
@@ -57,9 +57,9 @@ export function selectAlien(alien) {
   socket.emit("select-alien", { alien });
 }
 
-export function attack() {
+export function attack(moveId) {
   return new Promise((resolve) => {
-    socket.emit("attack", {}, resolve);
+    socket.emit("attack", { moveId }, resolve);
   });
 }
 

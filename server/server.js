@@ -11,6 +11,8 @@ const {
   allowEvent,
 } = require("./security");
 
+const { getAlienMoves, getCombatMove, ENERGY_CONFIG, canAffordMove, spendEnergy, regenerateEnergy } = require("./combat");
+
 const app = express();
 const server = http.createServer(app);
 
@@ -79,7 +81,9 @@ function getPublicRoom(room) {
       name: player.name,
       ready: player.ready,
       alien: player.alien,
+      moves: getAlienMoves(player.alien),
       health: player.health,
+      energy: player.energy,
     })),
     status: room.status,
     currentTurnPlayerId: room.currentTurnPlayerId ?? null,
@@ -134,8 +138,9 @@ io.on("connection", (socket) => {
           id: socket.id,
           name: playerName,
           ready: false,
-          alien: null,
+          alien: isAllowedAlien(data.alien) ? data.alien : "Heatblast",
           health: 100,
+          energy: ENERGY_CONFIG.START,
         },
       ],
       status: "waiting",
@@ -214,8 +219,9 @@ io.on("connection", (socket) => {
       id: socket.id,
       name: playerName,
       ready: false,
-      alien: null,
+      alien: isAllowedAlien(data.alien) ? data.alien : "Heatblast",
       health: 100,
+      energy: ENERGY_CONFIG.START,
     });
 
     socket.join(roomCode);
@@ -253,6 +259,9 @@ io.on("connection", (socket) => {
       room.status = "battle";
       room.currentTurnPlayerId = room.players[0].id;
 
+      // Both players begin their first active turn with equal energy.
+      regenerateEnergy(room.players[0]);
+
       io.to(room.code).emit("battle-started", getPublicRoom(room));
     }
 
@@ -277,6 +286,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("attack", (payload, callback) => {
+    const data = payload && typeof payload === "object" ? payload : {};
     const room = rooms.get(socket.data.roomCode);
 
     if (!room || room.status !== "battle") {
@@ -314,8 +324,40 @@ io.on("connection", (socket) => {
       return rejectRateLimit(socket, "attack", callback);
     }
 
-    // Damage is determined by the server, never by client input.
-    const actualDamage = 10;
+    // Resolve the move from the attacker's server-validated alien.
+    // Older clients that send no moveId receive their basic attack.
+    const basicMove = getAlienMoves(attacker.alien).find(
+      (move) => move.type === "basic"
+    );
+
+    const selectedMove =
+      data.moveId === undefined || data.moveId === null
+        ? basicMove
+        : getCombatMove(attacker.alien, data.moveId);
+
+    if (!selectedMove) {
+      return acknowledge(callback, {
+        success: false,
+        message: "Invalid attack for your selected alien.",
+      });
+    }
+
+    if (!canAffordMove(attacker, selectedMove)) {
+      return acknowledge(callback, {
+        success: false,
+        message: `Not enough energy. This move requires ${selectedMove.energyCost} energy.`,
+      });
+    }
+
+    // Energy and damage are both calculated from server-owned data.
+    if (!spendEnergy(attacker, selectedMove)) {
+      return acknowledge(callback, {
+        success: false,
+        message: "Unable to process this move.",
+      });
+    }
+
+    const actualDamage = selectedMove.damage;
     defender.health = Math.max(0, defender.health - actualDamage);
 
     const battleFinished = defender.health <= 0;
@@ -324,6 +366,7 @@ io.on("connection", (socket) => {
       room.status = "finished";
       room.currentTurnPlayerId = null;
     } else {
+      regenerateEnergy(defender);
       room.currentTurnPlayerId = defender.id;
     }
 
@@ -332,6 +375,10 @@ io.on("connection", (socket) => {
       attackerId: attacker.id,
       defenderId: defender.id,
       damage: actualDamage,
+      attackId: selectedMove.id,
+      attackName: selectedMove.name,
+      attackType: selectedMove.type,
+      energyCost: selectedMove.energyCost,
     });
 
     if (battleFinished) {
@@ -344,6 +391,11 @@ io.on("connection", (socket) => {
     acknowledge(callback, {
       success: true,
       damage: actualDamage,
+      attackId: selectedMove.id,
+      attackName: selectedMove.name,
+      attackType: selectedMove.type,
+      energyCost: selectedMove.energyCost,
+      remainingEnergy: attacker.energy,
       currentTurnPlayerId: room.currentTurnPlayerId,
       status: room.status,
     });
@@ -384,6 +436,7 @@ io.on("connection", (socket) => {
     room.players.forEach((player) => {
       player.ready = false;
       player.health = 100;
+      player.energy = ENERGY_CONFIG.START;
     });
 
     io.to(code).emit("opponent-left");
