@@ -3,7 +3,8 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
-import { sec, BodyPart, Halo, haloMaterial, OmnitrixSymbol } from "./parts";
+import { BodyPart, Halo, OmnitrixSymbol } from "./parts";
+import { sec, haloMaterial } from "./parts.utils";
 import { DataSparks, ScanRing } from "./effects";
 import { holoCore, holoSoft, holoGold, holoDarkRock, holoBright } from "../hologram/hologramMaterials";
 import { surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";

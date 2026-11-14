@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Zap,
@@ -13,7 +13,6 @@ import {
 
 import aliens from "./data/aliens";
 import Omnitrix3D from "./components/Omnitrix3D";
-import AlienWheel from "./components/AlienWheel";
 import AlienRoster from "./components/AlienRoster";
 import AlienDossier from "./components/AlienDossier";
 import FriendsPanel from "./components/FriendsPanel";
@@ -29,6 +28,8 @@ import {
   attack as sendAttack,
   leaveRoom as sendLeaveRoom,
 } from "./multiplayer";
+
+const AlienWheel = lazy(() => import("./components/AlienWheel"));
 
 // turns 5 into 05
 const pad = (number) => String(number).padStart(2, "0");
@@ -494,11 +495,23 @@ function App() {
               </div>
 
               <div className="ox-viewport__stage">
-                <AlienWheel
-                  aliens={aliens}
-                  selectedIndex={selectedIndex}
-                  onSelect={selectAlien}
-                />
+                <Suspense
+                  fallback={
+                    <div
+                      className="ox-viewport__loading"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      Loading 3D DNA selector...
+                    </div>
+                  }
+                >
+                  <AlienWheel
+                    aliens={aliens}
+                    selectedIndex={selectedIndex}
+                    onSelect={selectAlien}
+                  />
+                </Suspense>
               </div>
             </section>
 

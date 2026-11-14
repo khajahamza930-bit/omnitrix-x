@@ -360,6 +360,15 @@
   color: var(--ox-green);
 }
 
+.ox-viewport__loading {
+  min-height: clamp(380px, 58vh, 640px);
+  display: grid;
+  place-items: center;
+  color: var(--ox-green);
+  font: 600 var(--ox-text-sm) / 1.5 var(--ox-font-display);
+  letter-spacing: 0.12em;
+  text-align: center;
+}
 .ox-viewport__stage {
   position: relative;
   background: var(--ox-bg);

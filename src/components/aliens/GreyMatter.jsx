@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 
-import { sec, BodyPart, Halo, OmnitrixSymbol } from "./parts";
+import { BodyPart, Halo, OmnitrixSymbol } from "./parts";
+import { sec } from "./parts.utils";
 import { DataSparks, ScanRing } from "./effects";
 import { holoCore, holoSoft, holoDarkRock, holoBright } from "../hologram/hologramMaterials";
 import { sectionAt, surfacePoint, surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";

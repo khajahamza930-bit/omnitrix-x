@@ -2,7 +2,8 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-import { sec, BodyPart, Halo, OmnitrixSymbol } from "./parts";
+import { BodyPart, Halo, OmnitrixSymbol } from "./parts";
+import { sec } from "./parts.utils";
 import { DataSparks, ScanRing } from "./effects";
 import { makeHoloMaterial, holoSoft, holoDarkRock, holoBright } from "../hologram/hologramMaterials";
 import { surfacePoint, surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";
