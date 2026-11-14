@@ -416,8 +416,8 @@ function App() {
 
           <div className="ox-status">
             <span className="ox-badge">
-              <span className={isPowered ? "ox-dot" : "ox-dot ox-dot--off"} />
-              {isPowered ? "System online" : "System offline"}
+              <span className={connected ? "ox-dot" : "ox-dot ox-dot--off"} />
+              {connected ? "Server online" : "Server offline"}
             </span>
 
             <button
