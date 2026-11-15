@@ -2,23 +2,12 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { createLoft } from "../../utils/bodyShapes";
 import { holoCore, holoRock, holoCrack, holoBright } from "../hologram/hologramMaterials";
+import { sec, haloMaterial, wireMaterial } from "./parts.utils";
 
 // Small parts that every alien can use.
 
 // a faint wireframe that can be drawn over a body part
-export const wireMaterial = new THREE.MeshBasicMaterial({
-  color: "#8dffa8",
-  wireframe: true,
-  transparent: true,
-  opacity: 0.14,
-  depthWrite: false,
-});
-
 // one ring of a body part
-export function sec(x, y, z, rx, rz) {
-  return { x, y, z, rx, rz };
-}
-
 // a smooth body part made from rings
 export function BodyPart({ sections, segments = 10, material = holoCore, wire = false }) {
   const geometry = useMemo(
@@ -83,15 +72,6 @@ export function OmnitrixSymbol({ position, size = 0.1 }) {
   );
 }
 // a soft glow around a body part: a slightly bigger copy that only shows at the edges
-export const haloMaterial = new THREE.MeshBasicMaterial({
-  color: "#7dffa0",
-  transparent: true,
-  opacity: 0.2,
-  side: THREE.BackSide,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
-});
-
 export function Halo({ sections, segments = 12, amount = 1.07 }) {
   const geometry = useMemo(
     () => createLoft(sections.map((s) => sec(s.x, s.y, s.z, s.rx * amount, s.rz * amount)), segments),

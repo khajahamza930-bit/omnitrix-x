@@ -2,7 +2,8 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending } from "three";
 
-import { sec, BodyPart, Plate, Muscle, OmnitrixSymbol } from "./parts";
+import { BodyPart, Plate, Muscle, OmnitrixSymbol } from "./parts";
+import { sec } from "./parts.utils";
 import { holoCore, holoRock, holoDarkRock, holoBright } from "../hologram/hologramMaterials";
 
 // XLR8. The feet are at y = 0 and he faces the +z direction.

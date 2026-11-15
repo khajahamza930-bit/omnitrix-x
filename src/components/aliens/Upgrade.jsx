@@ -2,7 +2,8 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-import { sec, BodyPart, OmnitrixSymbol, wireMaterial } from "./parts";
+import { BodyPart, OmnitrixSymbol } from "./parts";
+import { sec, wireMaterial } from "./parts.utils";
 import { holoCore, holoDarkRock, holoCrack, holoPulse } from "../hologram/hologramMaterials";
 import { surfaceLine, makeLinesGeometry } from "../../utils/circuitLines";
 

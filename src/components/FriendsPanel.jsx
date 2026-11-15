@@ -68,14 +68,16 @@ function FriendsPanel({
             {connected ? "Server connected" : "Connecting to server"}
           </span>
 
-          <button
-            type="button"
-            className="ox-btn ox-btn--icon"
-            onClick={onClose}
-            aria-label="Close the multiplayer panel"
-          >
-            <X size={18} />
-          </button>
+          {!isInBattle && (
+            <button
+              type="button"
+              className="ox-btn ox-btn--icon"
+              onClick={onClose}
+              aria-label="Close the multiplayer panel"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -195,45 +197,49 @@ function FriendsPanel({
                       {player.ready ? "Ready" : "Not ready"}
                     </span>
 
-                    <div className="ox-meter">
-                      <div className="ox-meter__label">
-                        <span><Heart size={13} /> Health</span>
-                        <strong>{health}/100</strong>
-                      </div>
-                      <div
-                        className="ox-meter__track"
-                        role="progressbar"
-                        aria-label={`${player.name} health`}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={health}
-                      >
-                        <span
-                          className="ox-meter__fill ox-meter__fill--health"
-                          style={{ width: `${health}%` }}
-                        />
-                      </div>
-                    </div>
+                    {!isInBattle && (
+                      <>
+                        <div className="ox-meter">
+                          <div className="ox-meter__label">
+                            <span><Heart size={13} /> Health</span>
+                            <strong>{health}/100</strong>
+                          </div>
+                          <div
+                            className="ox-meter__track"
+                            role="progressbar"
+                            aria-label={`${player.name} health`}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={health}
+                          >
+                            <span
+                              className="ox-meter__fill ox-meter__fill--health"
+                              style={{ width: `${health}%` }}
+                            />
+                          </div>
+                        </div>
 
-                    <div className="ox-meter">
-                      <div className="ox-meter__label">
-                        <span><Zap size={13} /> Energy</span>
-                        <strong>{energy}/100</strong>
-                      </div>
-                      <div
-                        className="ox-meter__track"
-                        role="progressbar"
-                        aria-label={`${player.name} energy`}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={energy}
-                      >
-                        <span
-                          className="ox-meter__fill ox-meter__fill--energy"
-                          style={{ width: `${energy}%` }}
-                        />
-                      </div>
-                    </div>
+                        <div className="ox-meter">
+                          <div className="ox-meter__label">
+                            <span><Zap size={13} /> Energy</span>
+                            <strong>{energy}/100</strong>
+                          </div>
+                          <div
+                            className="ox-meter__track"
+                            role="progressbar"
+                            aria-label={`${player.name} energy`}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={energy}
+                          >
+                            <span
+                              className="ox-meter__fill ox-meter__fill--energy"
+                              style={{ width: `${energy}%` }}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 );
               })}

@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 
-import { sec, BodyPart, Plate, Muscle, Stripe, OmnitrixSymbol } from "./parts";
+import { BodyPart, Plate, Muscle, Stripe, OmnitrixSymbol } from "./parts";
+import { sec } from "./parts.utils";
 import { holoDarkRock, holoBright } from "../hologram/hologramMaterials";
 
 // Four Arms. The feet are at y = 0 and he faces the +z direction.

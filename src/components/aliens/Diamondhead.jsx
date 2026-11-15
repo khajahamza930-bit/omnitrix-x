@@ -2,7 +2,8 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-import { sec, BodyPart, Plate, OmnitrixSymbol } from "./parts";
+import { BodyPart, Plate, OmnitrixSymbol } from "./parts";
+import { sec } from "./parts.utils";
 import { holoCore, holoDarkRock, holoBright, holoCrystal } from "../hologram/hologramMaterials";
 
 // Diamondhead, built from the reference picture.

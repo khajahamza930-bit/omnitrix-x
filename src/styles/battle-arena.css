@@ -1,0 +1,276 @@
+.ox-arena {
+  --arena-green: #a1ff48;
+  --arena-text: #e8efe9;
+  --arena-muted: #93a69b;
+  --arena-line: rgba(139, 255, 58, 0.2);
+
+  position: relative;
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  padding: 20px;
+  overflow: hidden;
+  color: var(--arena-text);
+  background:
+    radial-gradient(ellipse at 50% 55%, rgba(31, 76, 43, 0.18), transparent 65%),
+    #090f0b;
+  border: 1px solid #26392d;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+
+.ox-arena__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ox-arena__eyebrow {
+  color: var(--arena-green);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.ox-arena__title {
+  margin: 5px 0 0;
+  font: 700 24px / 1.1 var(--ox-font-display, sans-serif);
+  letter-spacing: 0.025em;
+}
+
+.ox-arena__room {
+  padding: 7px 10px;
+  color: var(--arena-muted);
+  border: 1px solid #304236;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.ox-arena__stage {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(139, 255, 58, 0.14);
+  background:
+    linear-gradient(180deg, rgba(15, 29, 19, 0.5), rgba(5, 10, 7, 0.2));
+}
+
+.ox-arena__fighter-info {
+  position: absolute;
+  z-index: 2;
+  inset: 14px 14px auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.ox-arena__player {
+  display: grid;
+  gap: 6px;
+  width: min(220px, 34%);
+  padding: 12px;
+  background: rgba(7, 15, 10, 0.86);
+  border: 1px solid #2a3b30;
+  backdrop-filter: blur(8px);
+}
+
+.ox-arena__player:last-child {
+  text-align: right;
+}
+
+.ox-arena__player--active {
+  border-color: rgba(161, 255, 72, 0.7);
+  box-shadow: inset 0 0 18px rgba(96, 255, 65, 0.06);
+}
+
+.ox-arena__player-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--arena-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.ox-arena__player:last-child .ox-arena__player-top {
+  flex-direction: row-reverse;
+}
+
+.ox-arena__active-tag {
+  color: var(--arena-green);
+}
+
+.ox-arena__player-name {
+  overflow-wrap: anywhere;
+  font: 700 15px / 1.2 var(--ox-font-display, sans-serif);
+}
+
+.ox-arena__alien-name {
+  color: var(--arena-muted);
+  font-size: 11px;
+}
+
+.ox-arena-meter {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.ox-arena-meter__label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--arena-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.ox-arena-meter__label strong {
+  color: var(--arena-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.ox-arena-meter__track {
+  height: 4px;
+  overflow: hidden;
+  background: #243129;
+}
+
+.ox-arena-meter__track span {
+  display: block;
+  height: 100%;
+  transition: width 350ms ease;
+}
+
+.ox-arena-meter--health .ox-arena-meter__track span {
+  background: #a1ff48;
+}
+
+.ox-arena-meter--energy .ox-arena-meter__track span {
+  background: #58c9e8;
+}
+
+.ox-arena__canvas {
+  position: relative;
+  width: 100%;
+  height: 480px;
+}
+
+.ox-arena__canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ox-arena__versus {
+  position: absolute;
+  top: 56%;
+  left: 50%;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: rgba(219, 239, 222, 0.75);
+  background: rgba(7, 15, 10, 0.76);
+  border: 1px solid rgba(139, 255, 58, 0.22);
+  border-radius: 50%;
+  font: 700 11px var(--ox-font-display, sans-serif);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.ox-arena__turn {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 34px;
+  padding: 8px 12px;
+  color: var(--arena-green);
+  background: rgba(5, 12, 8, 0.9);
+  border: 1px solid var(--arena-line);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-align: center;
+}
+
+.ox-arena__turn-light {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  background: var(--arena-green);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(161, 255, 72, 0.7);
+}
+
+.ox-arena__result {
+  padding: 14px;
+  color: var(--arena-green);
+  border: 1px solid var(--arena-line);
+  font: 700 20px var(--ox-font-display, sans-serif);
+  letter-spacing: 0.14em;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .ox-arena {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .ox-arena__title {
+    font-size: 20px;
+  }
+
+  .ox-arena__canvas {
+    height: 390px;
+  }
+
+  .ox-arena__fighter-info {
+    inset: 8px 8px auto;
+    gap: 8px;
+  }
+
+  .ox-arena__player {
+    width: 42%;
+    padding: 8px;
+  }
+
+  .ox-arena__player-name {
+    font-size: 12px;
+  }
+
+  .ox-arena__alien-name {
+    font-size: 10px;
+  }
+
+  .ox-arena__player-top,
+  .ox-arena-meter__label {
+    font-size: 8px;
+  }
+
+  .ox-arena__turn {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ox-arena-meter__track span {
+    transition: none;
+  }
+}
