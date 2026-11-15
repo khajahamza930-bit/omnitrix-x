@@ -980,3 +980,275 @@
     width: 100%;
   }
 }
+
+/* ==========================================================
+   OMNITRIX X — CONSOLE VISUAL REFINEMENT
+   Additive overrides: existing component behavior is preserved.
+   ========================================================== */
+
+/* ---------- background and page framing ---------- */
+
+.ox-app {
+  background-image:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(139, 255, 58, 0.055),
+      transparent 42%
+    ),
+    linear-gradient(rgba(139, 255, 58, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 255, 58, 0.025) 1px, transparent 1px);
+  background-size:
+    auto,
+    48px 48px,
+    48px 48px;
+}
+
+.ox-wrap {
+  max-width: 1560px;
+}
+
+/* ---------- top bar and page heading ---------- */
+
+.ox-topbar {
+  min-height: 82px;
+  border-bottom-color: rgba(139, 255, 58, 0.15);
+}
+
+.ox-brand__mark {
+  width: 48px;
+  height: 48px;
+}
+
+.ox-pagehead {
+  padding-top: 38px;
+  padding-bottom: 28px;
+}
+
+.ox-title {
+  letter-spacing: 0.055em;
+}
+
+/* ---------- panel hierarchy ---------- */
+
+.ox-panel {
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+}
+
+.ox-panel__head {
+  min-height: 54px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.ox-panel__body {
+  padding: 20px;
+}
+
+/* ---------- search and roster ---------- */
+
+.ox-field {
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.ox-field:focus {
+  outline: none;
+  border-color: var(--ox-green);
+  background: var(--ox-surface);
+}
+
+.ox-roster__list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ox-line-strong) transparent;
+}
+
+.ox-roster__list::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ox-roster__list::-webkit-scrollbar-thumb {
+  background: var(--ox-line-strong);
+}
+
+.ox-roster__item {
+  min-height: 58px;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.ox-roster__item[aria-pressed="true"] {
+  background: rgba(139, 255, 58, 0.065);
+}
+
+.ox-roster__glyph {
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+/* ---------- 3D viewport ---------- */
+
+.ox-viewport__stage {
+  background:
+    radial-gradient(
+      ellipse at 50% 48%,
+      rgba(139, 255, 58, 0.045),
+      transparent 58%
+    ),
+    var(--ox-bg);
+  border: 1px solid rgba(139, 255, 58, 0.10);
+}
+
+.ox-viewport__stage::before,
+.ox-viewport__stage::after {
+  width: 24px;
+  height: 24px;
+}
+
+/* ---------- transformation actions ---------- */
+
+.ox-actions {
+  gap: 14px;
+}
+
+.ox-actions .ox-btn--primary,
+.ox-actions .ox-btn--warn {
+  min-height: 58px;
+  letter-spacing: 0.12em;
+}
+
+/* ---------- alien dossier ---------- */
+
+.ox-dossier__name {
+  letter-spacing: 0.025em;
+  line-height: 1.08;
+}
+
+.ox-dossier__desc {
+  max-width: 58ch;
+  line-height: 1.7;
+}
+
+.ox-facts div {
+  padding: 14px;
+}
+
+.ox-section-title {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ox-line);
+}
+
+.ox-abilities {
+  gap: 11px;
+}
+
+.ox-stat {
+  margin-bottom: 15px;
+}
+
+/* ---------- multiplayer panels ---------- */
+
+.ox-player {
+  background: rgba(255, 255, 255, 0.012);
+  transition: border-color 150ms ease;
+}
+
+.ox-player:not(.ox-player--waiting):hover {
+  border-color: var(--ox-line-strong);
+}
+
+.ox-move {
+  min-height: 132px;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.ox-move:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.ox-move--selected {
+  background: rgba(139, 255, 58, 0.07);
+}
+
+/* ---------- keyboard and accessibility ---------- */
+
+.ox-roster__item:focus-visible,
+.ox-move:focus-visible {
+  outline: 2px solid var(--ox-green);
+  outline-offset: 2px;
+}
+
+.ox-field:focus-visible {
+  outline: 2px solid var(--ox-green);
+  outline-offset: 2px;
+}
+
+/* ---------- tablet refinements ---------- */
+
+@media (min-width: 761px) and (max-width: 1099px) {
+  .ox-console {
+    column-gap: 18px;
+    row-gap: 22px;
+  }
+
+  .ox-viewport__stage .omnitrix-3d-selector > div:not(.omnitrix-3d-heading) {
+    height: clamp(380px, 55vh, 580px) !important;
+  }
+}
+
+/* ---------- mobile refinements ---------- */
+
+@media (max-width: 760px) {
+  .ox-topbar {
+    min-height: 68px;
+  }
+
+  .ox-pagehead {
+    padding-top: 26px;
+    padding-bottom: 20px;
+  }
+
+  .ox-panel__body {
+    padding: 16px;
+  }
+
+  .ox-viewport__stage .omnitrix-3d-selector > div:not(.omnitrix-3d-heading) {
+    height: clamp(340px, 54vh, 500px) !important;
+  }
+
+  .ox-actions {
+    gap: 10px;
+  }
+
+  .ox-actions .ox-btn--primary,
+  .ox-actions .ox-btn--warn {
+    min-height: 52px;
+    padding-right: 12px;
+    padding-left: 12px;
+    font-size: var(--ox-text-sm);
+  }
+
+  .ox-move {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .ox-brand__mark {
+    width: 42px;
+    height: 42px;
+  }
+
+  .ox-title {
+    font-size: 1.15rem;
+  }
+
+  .ox-facts {
+    grid-template-columns: 1fr 1fr;
+  }
+}

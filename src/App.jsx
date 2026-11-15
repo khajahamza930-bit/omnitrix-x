@@ -16,6 +16,7 @@ import Omnitrix3D from "./components/Omnitrix3D";
 import AlienRoster from "./components/AlienRoster";
 import AlienDossier from "./components/AlienDossier";
 import FriendsPanel from "./components/FriendsPanel";
+const BattleArena3D = lazy(() => import("./components/BattleArena3D"));
 import "./styles/global.css";
 import "./styles/console.css";
 
@@ -50,6 +51,7 @@ function App() {
   const [multiplayerError, setMultiplayerError] = useState("");
   const [isReady, setIsReady] = useState(false);
   const [battleWinner, setBattleWinner] = useState(null);
+  const [battleEvent, setBattleEvent] = useState(null);
   const [selectedMoveId, setSelectedMoveId] = useState("");
   const [isBusy, setIsBusy] = useState(false);
   const [connected, setConnected] = useState(socket.connected);
@@ -115,6 +117,13 @@ function App() {
     function handleBattleUpdated(payload) {
       if (payload?.room) {
         setRoom(payload.room);
+      }
+
+      if (payload?.attackerId && payload?.defenderId) {
+        setBattleEvent((previous) => ({
+          ...payload,
+          sequence: (previous?.sequence || 0) + 1,
+        }));
       }
 
       if (payload?.attackName && payload?.attackerId) {
@@ -423,16 +432,16 @@ function App() {
             <button
               type="button"
               className="ox-btn"
-              aria-expanded={showFriends}
-              onClick={() => setShowFriends((current) => !current)}
+              aria-expanded={showFriends || isInBattle}
+              onClick={() => setShowFriends((current) => (isInBattle ? true : !current))}
             >
               <Users size={16} />
-              {showFriends ? "Close friends" : "Play with friends"}
+              {isInBattle ? "Battle controls" : showFriends ? "Close friends" : "Play with friends"}
             </button>
           </div>
         </header>
 
-        {showFriends && (
+        {(showFriends || isInBattle || room?.status === "finished") && (
           <FriendsPanel
             connected={connected}
             myId={socket.id}
@@ -460,6 +469,26 @@ function App() {
             onCopy={copyRoomCode}
             onClose={() => setShowFriends(false)}
           />
+        )}
+
+        {isInBattle && (
+          <Suspense
+            fallback={
+              <div className="ox-arena-loading" role="status">
+                Preparing 3D battlefield...
+              </div>
+            }
+          >
+            <BattleArena3D
+              room={room}
+              myId={socket.id}
+              canAttack={canAttack}
+              currentTurnName={currentTurnName}
+              battleWinner={battleWinner}
+              battleEvent={battleEvent}
+              aliens={aliens}
+            />
+          </Suspense>
         )}
 
         <div className="ox-pagehead">

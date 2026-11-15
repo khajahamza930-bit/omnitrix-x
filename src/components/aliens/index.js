@@ -1,29 +1,19 @@
-import Heatblast from "./Heatblast";
-import FourArms from "./FourArms";
-import XLR8 from "./XLR8";
-import Diamondhead from "./Diamondhead";
-import Upgrade from "./Upgrade";
-import Cannonbolt from "./Cannonbolt";
-import Wildmutt from "./Wildmutt";
-import Ripjaws from "./Ripjaws";
-import GreyMatter from "./GreyMatter";
-import Stinkfly from "./Stinkfly";
-import Ghostfreak from "./Ghostfreak";
+import { lazy } from "react";
 
-// This list connects an alien id (from aliens.js) to its 3D model.
-// When we finish a new alien, we add one line here.
+// Load only the selected alien model instead of importing all models
+// into the initial 3D watch bundle.
 const alienModels = {
-  1: Heatblast,
-  2: FourArms,
-  3: XLR8,
-  4: Diamondhead,
-  5: Upgrade,
-  6: Cannonbolt,
-  7: Wildmutt,
-  8: Ripjaws,
-  9: GreyMatter,
-  10: Stinkfly,
-  11: Ghostfreak,
+  1: lazy(() => import("./Heatblast")),
+  2: lazy(() => import("./FourArms")),
+  3: lazy(() => import("./XLR8")),
+  4: lazy(() => import("./Diamondhead")),
+  5: lazy(() => import("./Upgrade")),
+  6: lazy(() => import("./Cannonbolt")),
+  7: lazy(() => import("./Wildmutt")),
+  8: lazy(() => import("./Ripjaws")),
+  9: lazy(() => import("./GreyMatter")),
+  10: lazy(() => import("./Stinkfly")),
+  11: lazy(() => import("./Ghostfreak")),
 };
 
 export default alienModels;

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { createLoft } from "../../utils/bodyShapes";
 import { holoCore, holoRock, holoCrack, holoBright } from "../hologram/hologramMaterials";
-import { sec, haloMaterial } from "./parts.utils";
+import { sec, haloMaterial, wireMaterial } from "./parts.utils";
 
 // Small parts that every alien can use.
 
