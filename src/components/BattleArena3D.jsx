@@ -6,48 +6,188 @@ import alienModels from "./aliens/index";
 
 import "../styles/battle-arena.css";
 
+// Presentation adjustments are applied outside each alien's
+// original model so their internal animations remain untouched.
+const ALIEN_PRESENTATION = Object.freeze({
+  1:  { scale: 1.00, position: [0, 0, 0], rotationY: 0 },
+  2:  { scale: 1.25, position: [0, 0, 0], rotationY: 0 },
+  3:  { scale: 0.88, position: [0, 0, 0], rotationY: -0.9 },
+  4:  { scale: 1.00, position: [0, 0, 0], rotationY: 0 },
+  5:  { scale: 0.95, position: [0, 0, 0], rotationY: 0 },
+  6:  { scale: 1.05, position: [0, 0, 0], rotationY: 0 },
+  7:  { scale: 1.15, position: [0, 0, 0], rotationY: 0 },
+  8:  { scale: 1.00, position: [0, -0.18, 0], rotationY: 0 },
+  9:  { scale: 1.75, position: [0, 0, 0], rotationY: 0 },
+  10: { scale: 1.00, position: [0, 0, 0], rotationY: 0 },
+  11: { scale: 1.30, position: [0, 0, 0], rotationY: 0 },
+});
+
 function ArenaFloor() {
+  const pylons = [
+    [-5.05, -3.1],
+    [5.05, -3.1],
+    [-5.05, 3.1],
+    [5.05, 3.1],
+  ];
+
   return (
     <group>
+      {/* Large arena foundation */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, -0.04, 0]}
+        position={[0, -0.27, 0]}
         receiveShadow
       >
         <planeGeometry args={[30, 20]} />
         <meshStandardMaterial
-          color="#080e0b"
-          metalness={0.55}
-          roughness={0.82}
+          color="#050907"
+          metalness={0.35}
+          roughness={0.9}
         />
       </mesh>
 
+      {/* Raised metallic combat deck */}
+      <mesh position={[0, -0.1, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[5.85, 6.05, 0.18, 64]} />
+        <meshStandardMaterial
+          color="#111b15"
+          metalness={0.88}
+          roughness={0.3}
+        />
+      </mesh>
+
+      {/* Upper deck surface */}
+      <mesh position={[0, 0, 0]} receiveShadow>
+        <cylinderGeometry args={[5.65, 5.85, 0.08, 64]} />
+        <meshStandardMaterial
+          color="#17231b"
+          metalness={0.72}
+          roughness={0.42}
+        />
+      </mesh>
+
+      {/* Recessed floor grid */}
       <gridHelper
-        args={[24, 32, "#28533a", "#14251b"]}
-        position={[0, -0.025, 0]}
+        args={[24, 32, "#31583b", "#192b20"]}
+        position={[0, -0.17, 0]}
       />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-        <ringGeometry args={[3.1, 3.16, 96]} />
+      {/* Outer illuminated arena boundaries */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.047, 0]}
+      >
+        <ringGeometry args={[5.3, 5.38, 96]} />
         <meshBasicMaterial
-          color="#75ff45"
+          color="#91ff52"
+          transparent
+          opacity={0.85}
+        />
+      </mesh>
+
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.046, 0]}
+      >
+        <ringGeometry args={[5.48, 5.51, 96]} />
+        <meshBasicMaterial
+          color="#3c8050"
           transparent
           opacity={0.55}
         />
       </mesh>
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]}>
-        <ringGeometry args={[4.1, 4.13, 96]} />
+      {/* Inner combat-zone rings */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.046, 0]}
+      >
+        <ringGeometry args={[3.05, 3.09, 96]} />
+        <meshBasicMaterial
+          color="#70db58"
+          transparent
+          opacity={0.7}
+        />
+      </mesh>
+
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.045, 0]}
+      >
+        <ringGeometry args={[3.7, 3.72, 96]} />
         <meshBasicMaterial
           color="#3c8650"
           transparent
-          opacity={0.3}
+          opacity={0.42}
         />
       </mesh>
+
+      {/* Sixteen radial deck markings */}
+      {Array.from({ length: 16 }, (_, index) => {
+        const angle = (index / 16) * Math.PI * 2;
+        const radius = 4.55;
+
+        return (
+          <mesh
+            key={index}
+            position={[
+              Math.sin(angle) * radius,
+              0.05,
+              Math.cos(angle) * radius,
+            ]}
+            rotation={[0, angle, 0]}
+          >
+            <boxGeometry args={[0.035, 0.012, 0.72]} />
+            <meshBasicMaterial
+              color="#65bd62"
+              transparent
+              opacity={0.58}
+            />
+          </mesh>
+        );
+      })}
+
+      {/* Four illuminated perimeter pylons */}
+      {pylons.map(([x, z], index) => (
+        <group key={index} position={[x, 0, z]}>
+          <mesh position={[0, 0.12, 0]} castShadow>
+            <cylinderGeometry args={[0.2, 0.3, 0.18, 8]} />
+            <meshStandardMaterial
+              color="#26382b"
+              metalness={0.9}
+              roughness={0.28}
+            />
+          </mesh>
+
+          <mesh position={[0, 0.72, 0]} castShadow>
+            <cylinderGeometry args={[0.1, 0.16, 1.12, 8]} />
+            <meshStandardMaterial
+              color="#17251b"
+              metalness={0.85}
+              roughness={0.32}
+            />
+          </mesh>
+
+          <mesh position={[0, 0.72, 0.105]}>
+            <boxGeometry args={[0.045, 0.72, 0.035]} />
+            <meshBasicMaterial
+              color="#a1ff48"
+              emissive="#70ff35"
+              emissiveIntensity={1.6}
+            />
+          </mesh>
+
+          <pointLight
+            position={[0, 0.85, 0]}
+            color="#79ff58"
+            intensity={0.7}
+            distance={3.2}
+          />
+        </group>
+      ))}
     </group>
   );
 }
-
 function FighterPlatform({ position, active }) {
   return (
     <group position={position}>
@@ -89,6 +229,12 @@ function FighterModel({ alien, side, playerId, battleEvent }) {
   });
 
   const Model = alien ? alienModels[alien.id] : null;
+  const presentation =
+    ALIEN_PRESENTATION[alien?.id] || {
+      scale: 1,
+      position: [0, 0, 0],
+      rotationY: 0,
+    };
 
   useFrame((state) => {
     if (!group.current) return;
@@ -171,7 +317,7 @@ function FighterModel({ alien, side, playerId, battleEvent }) {
     >
       {Model ? (
         <Suspense fallback={null}>
-          <group scale={1.05}>
+          <group position={presentation.position} rotation={[0, presentation.rotationY, 0]} scale={1.05 * presentation.scale}>
             <Model />
           </group>
         </Suspense>
