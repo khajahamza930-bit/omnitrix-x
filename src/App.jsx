@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+﻿import { lazy, Suspense, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Zap,
@@ -19,6 +19,7 @@ import FriendsPanel from "./components/FriendsPanel";
 const BattleArena3D = lazy(() => import("./components/BattleArena3D"));
 import "./styles/global.css";
 import "./styles/console.css";
+import "./styles/phase1-command-center.css";
 
 import {
   socket,
@@ -494,7 +495,7 @@ function App() {
         <div className="ox-pagehead">
           <div>
             <p className="ox-label">
-              Alien database / 001—{String(aliens.length).padStart(3, "0")}
+              Alien database / 001â€”{String(aliens.length).padStart(3, "0")}
             </p>
             <h2 className="ox-title">
               Choose your <span>alien</span>
@@ -672,3 +673,4 @@ function App() {
 }
 
 export default App;
+
