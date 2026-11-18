@@ -1,4 +1,4 @@
-import { Cpu, Activity, Shield, Zap, Eye, Heart, Swords, Sparkles } from "lucide-react";
+import { Cpu, Activity, Shield, Eye, Heart, Swords, Sparkles } from "lucide-react";
 
 const STAT_CONFIG = {
   power: { icon: Swords, color: "#ff5a4d" },

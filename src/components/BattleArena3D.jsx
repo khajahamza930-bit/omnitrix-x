@@ -1,6 +1,6 @@
 import { Suspense, useRef, useState, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { DoubleSide, AdditiveBlending } from "three";
+import { DoubleSide } from "three";
 import { ContactShadows, Environment, Html } from "@react-three/drei";
 
 import alienModels from "./aliens/index";
