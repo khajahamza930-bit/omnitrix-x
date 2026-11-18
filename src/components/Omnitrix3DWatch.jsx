@@ -1,4 +1,4 @@
-﻿import React, { Suspense, useRef } from "react";
+import React, { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   ContactShadows,
@@ -100,12 +100,12 @@ function EnergyBeam() {
   const innerBeam = useRef();
 
   useFrame((state) => {
-    const pulse = 0.045 + (Math.sin(state.clock.elapsedTime * 2.1) + 1) * 0.018;
+    const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+    const pulse = 0.045 + (Math.sin(time * 2.1) + 1) * 0.018;
 
-    if (beam.current) beam.current.opacity = pulse;
-    if (innerBeam.current) {
-      innerBeam.current.opacity =
-        0.025 + (Math.sin(state.clock.elapsedTime * 2.1 + 1) + 1) * 0.012;
+    if (beam.current?.material) beam.current.material.opacity = pulse;
+    if (innerBeam.current?.material) { innerBeam.current.material.opacity =
+        0.025 + (Math.sin(time * 2.1 + 1) + 1) * 0.012;
     }
   });
 
@@ -176,7 +176,8 @@ function SwirlRing({ radius, speed, tilt, height }) {
 
   useFrame((state) => {
     if (ring.current) {
-      ring.current.rotation.z = state.clock.elapsedTime * speed;
+      const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+      ring.current.rotation.z = time * speed;
     }
   });
 
@@ -222,7 +223,8 @@ function HologramParticles() {
 
   useFrame((state) => {
     if (particleGroup.current) {
-      particleGroup.current.rotation.y = state.clock.elapsedTime * 0.09;
+      const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+      particleGroup.current.rotation.y = time * 0.09;
     }
   });
 
@@ -248,9 +250,10 @@ function ScanRing() {
 
   useFrame((state) => {
     if (scan.current) {
-      const pulse = 1 + Math.sin(state.clock.elapsedTime * 1.5) * 0.045;
+      const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+      const pulse = 1 + Math.sin(time * 1.5) * 0.045;
       scan.current.scale.set(pulse, pulse, pulse);
-      scan.current.rotation.z = state.clock.elapsedTime * 0.25;
+      scan.current.rotation.z = time * 0.25;
     }
   });
 

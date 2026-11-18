@@ -1,6 +1,6 @@
-
 import Omnitrix3DWatch from "./Omnitrix3DWatch";
 import "../styles/alien-wheel.css";
+import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
 export default function AlienWheel({
   aliens = [],
@@ -10,6 +10,8 @@ export default function AlienWheel({
   if (!aliens.length) {
     return <p>Loading alien database...</p>;
   }
+
+  const currentAlien = aliens[selectedIndex];
 
   return (
     <section className="omnitrix-3d-selector">
@@ -25,8 +27,33 @@ export default function AlienWheel({
         onSelect={onSelect}
       />
 
+      <div className="omnitrix-3d-controls">
+        <button 
+          className="omnitrix-3d-nav" 
+          onClick={() => onSelect((selectedIndex - 1 + aliens.length) % aliens.length)}
+          aria-label="Previous alien"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        
+        <div className="omnitrix-3d-info">
+          <span className="omnitrix-3d-counter">
+            {String(selectedIndex + 1).padStart(2, "0")} / {String(aliens.length).padStart(2, "0")}
+          </span>
+          <span className="omnitrix-3d-alien-name">{currentAlien?.name}</span>
+        </div>
+        
+        <button 
+          className="omnitrix-3d-nav" 
+          onClick={() => onSelect((selectedIndex + 1) % aliens.length)}
+          aria-label="Next alien"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
       <p className="omnitrix-3d-hint">
-        DRAG TO ROTATE VIEW · SELECT AN ALIEN
+        DRAG TO ROTATE VIEW • ARROW KEYS TO SELECT
       </p>
     </section>
   );

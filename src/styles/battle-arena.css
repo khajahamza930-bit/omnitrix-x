@@ -1,66 +1,77 @@
-.ox-arena {
-  --arena-green: #a1ff48;
-  --arena-text: #e8efe9;
-  --arena-muted: #93a69b;
-  --arena-line: rgba(139, 255, 58, 0.2);
+@import "./tokens.css";
 
+/* ============================================================
+   OMNITRIX X — BATTLE ARENA
+   ============================================================ */
+
+.ox-arena {
+  --arena-green: var(--ox-green);
+  --arena-text: var(--ox-text);
+  --arena-muted: var(--ox-text-secondary);
+  --arena-line: var(--ox-line-strong);
+  
   position: relative;
   display: grid;
-  gap: 16px;
+  gap: var(--ox-space-4);
   width: 100%;
   min-width: 0;
-  padding: 20px;
+  padding: var(--ox-space-5);
   overflow: hidden;
   color: var(--arena-text);
   background:
-    radial-gradient(ellipse at 50% 55%, rgba(31, 76, 43, 0.18), transparent 65%),
-    #090f0b;
-  border: 1px solid #26392d;
-  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    radial-gradient(ellipse at 50% 60%, rgba(31,76,43,0.2), transparent 60%),
+    var(--ox-bg);
+  border: 1px solid var(--arena-line);
 }
 
 .ox-arena__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--ox-space-4);
+  flex-wrap: wrap;
 }
 
 .ox-arena__eyebrow {
   color: var(--arena-green);
+  font-family: var(--ox-font-mono);
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-weight: 600;
+  letter-spacing: 0.18em;
 }
 
 .ox-arena__title {
-  margin: 5px 0 0;
-  font: 700 24px / 1.1 var(--ox-font-display, sans-serif);
-  letter-spacing: 0.025em;
+  font-size: clamp(20px, 2.5vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
 }
 
 .ox-arena__room {
-  padding: 7px 10px;
+  padding: 8px 14px;
+  font-family: var(--ox-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   color: var(--arena-muted);
-  border: 1px solid #304236;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  background: rgba(10,17,12,0.8);
+  border: 1px solid var(--arena-line);
+  white-space: nowrap;
 }
 
+/* ===== STAGE ===== */
 .ox-arena__stage {
   position: relative;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid rgba(139, 255, 58, 0.14);
-  background:
-    linear-gradient(180deg, rgba(15, 29, 19, 0.5), rgba(5, 10, 7, 0.2));
+  border: 1px solid var(--arena-line);
+  background: linear-gradient(180deg, rgba(15,29,19,0.4), rgba(5,10,7,0.3));
 }
 
 .ox-arena__fighter-info {
   position: absolute;
-  z-index: 2;
-  inset: 14px 14px auto;
+  z-index: 5;
+  inset: 12px 12px auto;
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -69,12 +80,13 @@
 
 .ox-arena__player {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   width: min(220px, 34%);
-  padding: 12px;
-  background: rgba(7, 15, 10, 0.86);
-  border: 1px solid #2a3b30;
-  backdrop-filter: blur(8px);
+  padding: 14px;
+  background: rgba(5,12,8,0.9);
+  border: 1px solid var(--arena-line);
+  backdrop-filter: blur(12px);
+  transition: all var(--ox-transition);
 }
 
 .ox-arena__player:last-child {
@@ -82,8 +94,10 @@
 }
 
 .ox-arena__player--active {
-  border-color: rgba(161, 255, 72, 0.7);
-  box-shadow: inset 0 0 18px rgba(96, 255, 65, 0.06);
+  border-color: var(--arena-green);
+  box-shadow: 
+    0 0 25px var(--ox-green-glow),
+    inset 0 0 20px rgba(139,255,58,0.05);
 }
 
 .ox-arena__player-top {
@@ -92,9 +106,10 @@
   justify-content: space-between;
   gap: 6px;
   color: var(--arena-muted);
+  font-family: var(--ox-font-mono);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
 }
 
 .ox-arena__player:last-child .ox-arena__player-top {
@@ -103,32 +118,37 @@
 
 .ox-arena__active-tag {
   color: var(--arena-green);
+  animation: ox-pulse 1.5s ease-in-out infinite;
 }
 
 .ox-arena__player-name {
+  font-size: clamp(14px, 1.5vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
   overflow-wrap: anywhere;
-  font: 700 15px / 1.2 var(--ox-font-display, sans-serif);
 }
 
 .ox-arena__alien-name {
-  color: var(--arena-muted);
   font-size: 11px;
+  color: var(--arena-muted);
+  letter-spacing: 0.05em;
 }
 
+/* ===== METERS ===== */
 .ox-arena-meter {
   display: grid;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 5px;
 }
 
 .ox-arena-meter__label {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  color: var(--arena-muted);
+  font-family: var(--ox-font-mono);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--arena-muted);
 }
 
 .ox-arena-meter__label strong {
@@ -137,29 +157,33 @@
 }
 
 .ox-arena-meter__track {
-  height: 4px;
+  height: 5px;
   overflow: hidden;
-  background: #243129;
+  background: var(--ox-line);
 }
 
 .ox-arena-meter__track span {
   display: block;
   height: 100%;
-  transition: width 350ms ease;
+  transition: width 0.4s var(--ox-transition);
 }
 
 .ox-arena-meter--health .ox-arena-meter__track span {
-  background: #a1ff48;
+  background: linear-gradient(90deg, #ff5a4d, #ff8a65);
+  box-shadow: 0 0 10px rgba(255,90,77,0.4);
 }
 
 .ox-arena-meter--energy .ox-arena-meter__track span {
-  background: #58c9e8;
+  background: linear-gradient(90deg, #4ddcff, #8affff);
+  box-shadow: 0 0 10px rgba(77,204,255,0.4);
 }
 
+/* ===== CANVAS ===== */
 .ox-arena__canvas {
   position: relative;
   width: 100%;
   height: 480px;
+  min-height: 300px;
 }
 
 .ox-arena__canvas canvas {
@@ -170,107 +194,260 @@
 
 .ox-arena__versus {
   position: absolute;
-  top: 56%;
+  top: 50%;
   left: 50%;
+  width: 42px;
+  height: 42px;
   display: grid;
-  width: 38px;
-  height: 38px;
   place-items: center;
-  color: rgba(219, 239, 222, 0.75);
-  background: rgba(7, 15, 10, 0.76);
-  border: 1px solid rgba(139, 255, 58, 0.22);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(232,239,233,0.6);
+  background: rgba(7,15,10,0.85);
+  border: 1px solid var(--arena-line);
   border-radius: 50%;
-  font: 700 11px var(--ox-font-display, sans-serif);
   transform: translate(-50%, -50%);
   pointer-events: none;
+  z-index: 2;
 }
 
+/* ===== TURN INDICATOR ===== */
 .ox-arena__turn {
   position: absolute;
-  z-index: 2;
+  z-index: 5;
   right: 12px;
   bottom: 12px;
   left: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  min-height: 34px;
-  padding: 8px 12px;
+  gap: 10px;
+  min-height: 40px;
+  padding: 10px 16px;
   color: var(--arena-green);
-  background: rgba(5, 12, 8, 0.9);
+  background: rgba(5,12,8,0.92);
   border: 1px solid var(--arena-line);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
+  font-family: var(--ox-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-align: center;
+  backdrop-filter: blur(8px);
+  flex-wrap: wrap;
 }
 
 .ox-arena__turn-light {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
   background: var(--arena-green);
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(161, 255, 72, 0.7);
+  box-shadow: 0 0 12px var(--arena-green);
+  animation: ox-pulse 1.2s ease-in-out infinite;
 }
 
+/* ===== RESULT ===== */
 .ox-arena__result {
-  padding: 14px;
-  color: var(--arena-green);
-  border: 1px solid var(--arena-line);
-  font: 700 20px var(--ox-font-display, sans-serif);
-  letter-spacing: 0.14em;
+  padding: var(--ox-space-4);
+  margin-top: var(--ox-space-3);
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-align: center;
+  color: var(--arena-green);
+  background: rgba(139,255,58,0.05);
+  border: 1px solid var(--arena-line);
+  animation: ox-result-in 0.5s var(--ox-transition);
+}
+
+@keyframes ox-result-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ===== BATTLE RESULT OVERLAY ===== */
+.ox-battle-result {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  padding: 20px;
+}
+
+.ox-battle-result__bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.92), rgba(0,0,0,0.98));
+  backdrop-filter: blur(12px);
+  animation: ox-br-fade 0.4s ease-out;
+}
+
+@keyframes ox-br-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ox-battle-result__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 50px;
+  text-align: center;
+  background: linear-gradient(145deg, #0e1813, #0a110c);
+  border: 2px solid var(--arena-line);
+  box-shadow: 0 0 60px rgba(0,0,0,0.5);
+  animation: ox-br-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-width: 90vw;
+  width: 480px;
+}
+
+@keyframes ox-br-in {
+  0% { opacity: 0; transform: scale(0.8) translateY(30px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.ox-battle-result--victory .ox-battle-result__content {
+  border-color: var(--arena-green);
+  box-shadow: 
+    0 0 80px var(--ox-green-glow),
+    inset 0 0 60px rgba(139,255,58,0.08);
+}
+
+.ox-battle-result--defeat .ox-battle-result__content {
+  border-color: var(--ox-danger);
+  box-shadow: 
+    0 0 80px rgba(255,90,77,0.2),
+    inset 0 0 60px rgba(255,90,77,0.08);
+}
+
+.ox-battle-result__icon {
+  font-size: clamp(40px, 6vw, 56px);
+  line-height: 1;
+  animation: ox-br-icon 2s ease-in-out infinite;
+}
+
+.ox-battle-result--victory .ox-battle-result__icon {
+  color: var(--arena-green);
+  text-shadow: 0 0 40px var(--ox-green-glow);
+}
+
+.ox-battle-result--defeat .ox-battle-result__icon {
+  color: var(--ox-danger);
+  text-shadow: 0 0 40px rgba(255,90,77,0.5);
+}
+
+@keyframes ox-br-icon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.ox-battle-result__title {
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1;
+  word-break: keep-all;
+}
+
+.ox-battle-result--victory .ox-battle-result__title {
+  color: var(--arena-green);
+  text-shadow: 0 0 40px var(--ox-green-glow);
+}
+
+.ox-battle-result--defeat .ox-battle-result__title {
+  color: var(--ox-danger);
+  text-shadow: 0 0 40px rgba(255,90,77,0.5);
+}
+
+.ox-battle-result__winner {
+  margin: 0;
+  font-size: clamp(14px, 2vw, 16px);
+  letter-spacing: 0.05em;
+  color: var(--arena-muted);
+  word-break: break-word;
+}
+
+.ox-battle-result__hint {
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--ox-text-muted);
+  text-transform: uppercase;
+  animation: ox-br-hint 1.5s ease-in-out infinite;
+}
+
+@keyframes ox-br-hint {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ===== LOADING ===== */
+.ox-arena-loading {
+  padding: 40px;
+  text-align: center;
+  color: var(--arena-green);
+  font-family: var(--ox-font-mono);
+  letter-spacing: 0.15em;
+  font-size: 14px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .ox-arena {
+    gap: var(--ox-space-3);
+    padding: var(--ox-space-3);
+  }
+  
+  .ox-arena__title { font-size: 22px; }
+  .ox-arena__canvas { height: 360px; }
+  .ox-arena__fighter-info { inset: 8px 8px auto; gap: 8px; }
+  .ox-arena__player { width: 44%; padding: 10px; }
+  .ox-arena__player-name { font-size: 13px; }
+  .ox-arena__turn { right: 8px; bottom: 8px; left: 8px; font-size: 10px; }
 }
 
 @media (max-width: 700px) {
   .ox-arena {
-    gap: 12px;
-    padding: 12px;
+    gap: var(--ox-space-2);
+    padding: var(--ox-space-2);
   }
+  
+  .ox-arena__canvas { height: 320px; }
+  .ox-arena__fighter-info { inset: 6px 6px auto; gap: 6px; }
+  .ox-arena__player { width: 46%; padding: 8px; }
+  .ox-arena__player-name { font-size: 12px; }
+  .ox-arena__turn { right: 6px; bottom: 6px; left: 6px; font-size: 9px; }
+  
+  .ox-battle-result__content {
+    padding: 28px 20px;
+    width: 95vw;
+  }
+  
+  .ox-battle-result__title { font-size: 24px; }
+  .ox-battle-result__icon { font-size: 40px; }
+}
 
-  .ox-arena__title {
-    font-size: 20px;
+@media (max-width: 480px) {
+  .ox-arena__canvas { height: 280px; }
+  .ox-arena__player { width: 48%; padding: 6px; }
+  .ox-arena__player-name { font-size: 11px; }
+  .ox-arena__turn { font-size: 8px; }
+  
+  .ox-battle-result__content {
+    padding: 24px 16px;
   }
-
-  .ox-arena__canvas {
-    height: 390px;
-  }
-
-  .ox-arena__fighter-info {
-    inset: 8px 8px auto;
-    gap: 8px;
-  }
-
-  .ox-arena__player {
-    width: 42%;
-    padding: 8px;
-  }
-
-  .ox-arena__player-name {
-    font-size: 12px;
-  }
-
-  .ox-arena__alien-name {
-    font-size: 10px;
-  }
-
-  .ox-arena__player-top,
-  .ox-arena-meter__label {
-    font-size: 8px;
-  }
-
-  .ox-arena__turn {
-    right: 8px;
-    bottom: 8px;
-    left: 8px;
-    font-size: 9px;
-  }
+  
+  .ox-battle-result__title { font-size: 22px; }
+  .ox-battle-result__icon { font-size: 36px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ox-arena-meter__track span {
-    transition: none;
-  }
+  .ox-arena-meter__track span { transition: none; }
 }
