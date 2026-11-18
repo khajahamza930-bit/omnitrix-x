@@ -10,9 +10,9 @@ import {
   X,
   Zap,
   Heart,
+  Shield
 } from "lucide-react";
 
-// Multiplayer presentation only. Server-owned room data controls combat values.
 function FriendsPanel({
   connected,
   myId,
@@ -67,69 +67,55 @@ function FriendsPanel({
             )}
             {connected ? "Server connected" : "Connecting to server"}
           </span>
-
-          {!isInBattle && (
-            <button
-              type="button"
-              className="ox-btn ox-btn--icon"
-              onClick={onClose}
-              aria-label="Close the multiplayer panel"
-            >
-              <X size={18} />
-            </button>
-          )}
         </div>
-      </div>
 
-      <div className="ox-panel__body">
-        {!room ? (
-          <div>
-            <div className="ox-formrow">
-              <label htmlFor="player-name" className="ox-label">
-                Your player name
-              </label>
-              <input
-                id="player-name"
-                className="ox-field"
-                value={playerName}
-                onChange={(event) => onPlayerNameChange(event.target.value)}
-                maxLength={20}
-                placeholder="Enter your name"
-                autoComplete="nickname"
-              />
-            </div>
-
-            <div className="ox-friends__grid">
+        <div className="ox-panel__body">
+          {!room ? (
+            <div>
               <div className="ox-formrow">
-                <span className="ox-label">Start a new room</span>
-                <button
-                  type="button"
-                  className="ox-btn ox-btn--primary"
-                  onClick={onCreate}
-                  disabled={isBusy}
-                >
-                  <Users size={16} />
-                  {isBusy ? "Please wait..." : "Create room"}
-                </button>
+                <label htmlFor="player-name" className="ox-label">
+                  Your player name
+                </label>
+                <input
+                  id="player-name"
+                  className="ox-field"
+                  value={playerName}
+                  onChange={(event) => onPlayerNameChange(event.target.value)}
+                  maxLength={20}
+                  placeholder="Enter your name"
+                  autoComplete="nickname"
+                />
               </div>
 
-              <form
-                className="ox-formrow"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  onJoin();
-                }}
-              >
-                <label htmlFor="room-code" className="ox-label">
-                  Friend's room code
+              <div className="ox-friends__grid">
+                <div className="ox-formrow">
+                  <span className="ox-label">Start a new room</span>
+                  <button
+                    type="button"
+                    className="ox-btn ox-btn--primary"
+                    onClick={onCreate}
+                    disabled={isBusy}
+                  >
+                    <Users size={16} />
+                    {isBusy ? "Please wait..." : "Create room"}
+                  </button>
+                </div>
+
+                <form
+                  className="ox-formrow"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    onJoin();
+                  }
+                >
+                  <label htmlFor="room-code" className="ox-label">
+                    Friend's room code
                 </label>
                 <input
                   id="room-code"
                   className="ox-field ox-field--code"
                   value={roomCodeInput}
-                  onChange={(event) =>
-                    onRoomCodeChange(event.target.value.toUpperCase())
-                  }
+                  onChange={(event) => onRoomCodeChange(event.target.value.toUpperCase())}
                   maxLength={6}
                   placeholder="E.G. A1B2C3"
                   autoComplete="off"
@@ -166,23 +152,34 @@ function FriendsPanel({
               >
                 <DoorOpen size={15} />
                 Leave room
-              </button>
+              </div>
             </div>
 
             <div className="ox-friends__grid ox-room__players">
-              {room.players.map((player, index) => {
+              {room.players.map((player) => {
                 const health = Math.max(0, Math.min(100, player.health ?? 100));
-                const energy = Math.max(0, Math.min(100, player.energy ?? 0));
+                const energy = Math.max(0, Math.min(100, player.energy ?? 100));
+                const isMyTurn = player.id === room.currentTurnPlayerId;
 
                 return (
-                  <div className="ox-player" key={player.id}>
-                    <span className="ox-label">
-                      <span className="ox-dot" />
-                      {index === 0 ? "Player 1 / host" : "Player 2"}
-                      {player.id === room.currentTurnPlayerId && isInBattle
-                        ? " · ACTIVE TURN"
-                        : ""}
-                    </span>
+                  <div
+                    key={player.id}
+                    className="ox-player"
+                    style={{
+                      borderLeft: isMyTurn ? "3px solid var(--ox-green)" : "3px solid transparent",
+                      background: isMyTurn ? "rgba(139,255,58,0.05)" : "rgba(7,13,9,0.6)"
+                    }
+                  >
+                    <div className="ox-player__top">
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span className="ox-dot" style={{
+                          background: player.ready ? "var(--ox-green)" : "var(--ox-warn)",
+                          boxShadow: `0 0 6px ${player.ready ? "var(--ox-green)" : "var(--ox-warn)"}`
+                        }}/>
+                        {player.id === myId ? "YOU" : "OPPONENT"}
+                      </span>
+                      {isMyTurn && <span className="ox-tag" style={{ fontSize: "9px" }}>ACTIVE</span>}
+                    </div>
 
                     <h3 className="ox-player__name">
                       {player.name}
@@ -194,28 +191,18 @@ function FriendsPanel({
                     </p>
 
                     <span className={player.ready ? "ox-tag" : "ox-tag ox-tag--idle"}>
-                      {player.ready ? "Ready" : "Not ready"}
+                      {player.ready ? "READY" : "NOT READY"}
                     </span>
 
-                    {!isInBattle && (
+                    {isInBattle && (
                       <>
                         <div className="ox-meter">
                           <div className="ox-meter__label">
                             <span><Heart size={13} /> Health</span>
                             <strong>{health}/100</strong>
                           </div>
-                          <div
-                            className="ox-meter__track"
-                            role="progressbar"
-                            aria-label={`${player.name} health`}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-valuenow={health}
-                          >
-                            <span
-                              className="ox-meter__fill ox-meter__fill--health"
-                              style={{ width: `${health}%` }}
-                            />
+                          <div className="ox-meter__track" role="progressbar" aria-label={`${player.name} health`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={health}>
+                            <span className="ox-meter__fill ox-meter__fill--health" style={{ width: `${health}%` }} />
                           </div>
                         </div>
 
@@ -224,50 +211,39 @@ function FriendsPanel({
                             <span><Zap size={13} /> Energy</span>
                             <strong>{energy}/100</strong>
                           </div>
-                          <div
-                            className="ox-meter__track"
-                            role="progressbar"
-                            aria-label={`${player.name} energy`}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-valuenow={energy}
-                          >
-                            <span
-                              className="ox-meter__fill ox-meter__fill--energy"
-                              style={{ width: `${energy}%` }}
-                            />
+                          <div className="ox-meter__track" role="progressbar" aria-label={`${player.name} energy`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={energy}>
+                            <span className="ox-meter__fill ox-meter__fill--energy" style={{ width: `${energy}%` }} />
                           </div>
                         </div>
                       </>
-                    )}
+                    }
                   </div>
-                );
-              })}
+                }
+              )}
 
               {room.players.length < 2 && (
                 <div className="ox-player ox-player--waiting">
                   Waiting for your friend to join...
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div className="ox-room__actions">
-              {!isInBattle && room.status !== "finished" && (
-                <button type="button" className="ox-btn" onClick={onReady}>
-                  <CheckCircle2 size={16} />
-                  {isReady ? "Cancel ready" : "I'm ready"}
-                </button>
-              )}
+              <div className="ox-room__actions">
+                {!isInBattle && room.status !== "finished" && (
+                  <button type="button" className="ox-btn" onClick={onReady}>
+                    <CheckCircle2 size={16} />
+                    {isReady ? "Cancel ready" : "I'm ready"}
+                  </button>
+                }</div>
 
-              {isInBattle && room.players.length === 2 && (
-                <span className="ox-tag">
-                  {canAttack ? "Your turn" : `${currentTurnName || "Opponent"}'s turn`}
+                {isInBattle && room.players.length === 2 && (
+                  <span className="ox-tag">
+                    {canAttack ? "Your turn" : `${currentTurnName || "Opponent"}'s turn`}
                 </span>
-              )}
+              }`
 
               {room.status === "finished" && (
                 <span className="ox-tag">Battle finished</span>
-              )}
+              }>
             </div>
 
             {isInBattle && room.players.length === 2 && (
@@ -280,28 +256,27 @@ function FriendsPanel({
                   <span className="ox-combat__energy">
                     <Zap size={14} />
                     {myEnergy} energy
-                  </span>
+                  </div>
                 </div>
 
                 {availableMoves.length > 0 ? (
-                  <>
-                    <div className="ox-moves">
-                      {availableMoves.map((move) => {
-                        const affordable = myEnergy >= move.energyCost;
-                        const selected = selectedMove?.id === move.id;
+                  <div className="ox-moves">
+                    {availableMoves.map((move) => {
+                      const affordable = myEnergy >= move.energyCost;
+                      const selected = selectedMove?.id === move.id;
 
-                        return (
-                          <button
-                            type="button"
-                            key={move.id}
-                            className={`ox-move${selected ? " ox-move--selected" : ""}`}
-                            onClick={() => onMoveSelect(move.id)}
-                            disabled={!affordable}
-                            aria-pressed={selected}
-                            title={
-                              affordable
-                                ? move.description
-                                : `Requires ${move.energyCost} energy`
+                      return (
+                        <button
+                          type="button"
+                          key={move.id}
+                          className={`ox-move${selected ? "ox-move--selected" : ""}`}
+                          onClick={() => onMoveSelect(move.id)}
+                          disabled={!affordable}
+                          aria-pressed={selected}
+                          title={
+                            affordable
+                              ? move.description
+                              : `Requires ${move.energyCost} energy`
                             }
                           >
                             <span className="ox-move__type">
@@ -319,73 +294,48 @@ function FriendsPanel({
                               <span className="ox-move__unavailable">
                                 Insufficient energy
                               </span>
-                            )}
+                            </span>
                           </button>
-                        );
-                      })}
-                    </div>
-
-                    <div className="ox-combat__footer">
-                      <div>
-                        <span className="ox-label">Selected move</span>
-                        <strong>{selectedMove?.name || "No move selected"}</strong>
+                        </div>
                       </div>
 
-                      <button
-                        type="button"
-                        className="ox-btn ox-btn--primary"
-                        onClick={onAttack}
-                        disabled={
-                          !canAttack ||
-                          !selectedMove ||
-                          myEnergy < (selectedMove?.energyCost ?? 0)
-                        }
-                      >
-                        <Swords size={16} />
-                        {!canAttack
-                          ? "Waiting for opponent"
-                          : selectedMove
-                            ? `Use ${selectedMove.name}`
-                            : "Select a move"}
-                      </button>
-                    </div>
-                  </>
-                ) : (
+                      <div className="ox-combat__footer">
+                        <div>
+                          <span className="ox-label">Selected move</span>
+                          <strong>{selectedMove?.name || "No move selected"}</strong>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="ox-btn ox-btn--primary"
+                          onClick={onAttack}
+                          disabled={
+                            !canAttack ||
+                            !selectedMove ||
+                            myEnergy < (selectedMove?.energyCost ?? 0)
+                        >
+                          <Swords size={16} />
+                          {!canAttack
+                            ? "Waiting for opponent"
+                            : selectedMove
+                              ? `Use ${selectedMove.name}`
+                              : "Select a move"
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } else {
                   <p className="ox-note">
                     Combat moves are loading. Please wait for the room update.
                   </p>
-                )}
-              </section>
-            )}
-
-            {room.status === "finished" && battleWinner && (
-              <p className="ox-winner">
-                {battleWinner.winnerId === myId
-                  ? "Victory!"
-                  : `${battleWinner.winnerName} wins!`}
-              </p>
-            )}
+                }
+              }</div>
+            }
           </div>
-        )}
-
-        {message && (
-          <p className="ox-msg" role="status" aria-live="polite">
-            {message}
-          </p>
-        )}
-
-        {error && (
-          <p className="ox-msg ox-msg--error" role="alert">
-            {error}
-          </p>
-        )}
-
-        <p className="ox-note">
-          Local testing: both players can test on this computer using separate
-          browser tabs. Friends on other computers need the deployed server.
-        </p>
-      </div>
-    </section>
+        </div>
+      }
+    }
   );
 }
 

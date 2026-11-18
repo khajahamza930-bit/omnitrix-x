@@ -1,4 +1,4 @@
-import { Cpu, Activity, Shield, Zap, Eye, Heart, Swords } from "lucide-react";
+import { Cpu, Activity, Shield, Zap, Eye, Heart, Swords, Sparkles } from "lucide-react";
 
 const STAT_CONFIG = {
   power: { icon: Swords, color: "#ff5a4d" },
@@ -15,6 +15,7 @@ function AlienDossier({ alien }) {
           <span className="ox-label">ALIEN PROFILE</span>
         </div>
         <div className="ox-panel__body" style={{ textAlign: "center", padding: "60px 20px" }}>
+          <Sparkles size={48} style={{ opacity: 0.2, marginBottom: "16px" }} />
           <p style={{ color: "var(--ox-text-muted)" }}>Select an alien to view profile</p>
         </div>
       </aside>
@@ -22,6 +23,7 @@ function AlienDossier({ alien }) {
   }
 
   const stats = alien.stats || {};
+  const maxStat = Math.max(...Object.values(stats));
 
   return (
     <aside className="ox-dossier ox-panel" aria-label="Alien profile">
@@ -74,6 +76,7 @@ function AlienDossier({ alien }) {
             {Object.entries(stats).map(([stat, value]) => {
               const config = STAT_CONFIG[stat] || { icon: Activity, color: "var(--ox-green)" };
               const Icon = config.icon;
+              const percentage = (value / maxStat) * 100;
               return (
                 <div key={stat} className="ox-stat">
                   <span className="ox-stat__name">
@@ -84,7 +87,7 @@ function AlienDossier({ alien }) {
                     <div
                       className="ox-stat__fill"
                       style={{ 
-                        width: `${value}%`,
+                        width: `${percentage}%`,
                         background: `linear-gradient(90deg, ${config.color}80, ${config.color})`
                       }}
                     />
