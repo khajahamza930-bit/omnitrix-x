@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Zap,
@@ -206,6 +206,22 @@ function App() {
     };
   }, []);
 
+  // go to another alien (the list wraps around)
+  const selectAlien = useCallback(
+    (index) => {
+      const nextIndex = (index + aliens.length) % aliens.length;
+      setSelectedIndex(nextIndex);
+      setIsTransformed(false);
+      setIsTransforming(false);
+
+      if (room && room.status === "waiting") {
+        sendAlienSelection(aliens[nextIndex].name);
+      }
+    },
+    [room]
+  );
+
+  // arrow keys change the alien
   useEffect(() => {
     function handleKey(event) {
       if (showOmnitrixIntro) return;
@@ -220,18 +236,7 @@ function App() {
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [showOmnitrixIntro, activeView]);
-
-  function selectAlien(index) {
-    const nextIndex = (index + aliens.length) % aliens.length;
-    setSelectedIndex(nextIndex);
-    setIsTransformed(false);
-    setIsTransforming(false);
-
-    if (room && room.status === "waiting") {
-      sendAlienSelection(aliens[nextIndex].name);
-    }
-  }
+  }, [showOmnitrixIntro, activeView, selectedIndex, selectAlien]);
 
   function transform() {
     if (!isPowered || isTransforming) return;

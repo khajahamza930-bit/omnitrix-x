@@ -51,23 +51,27 @@ function useOmnitrix(duration) {
   // count down every second while transformed
   useEffect(() => {
     if (status !== 'transformed') return
-    if (timeLeft <= 0) {
-      revert(true)
-      return
-    }
-    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
+    const timer = setTimeout(() => {
+      const next = timeLeft - 1
+      setTimeLeft(next)
+      // when the time is over, go back to human form
+      if (next <= 0) revert(true)
+    }, 1000)
     return () => clearTimeout(timer)
   }, [status, timeLeft])
 
   // cooldown countdown
   useEffect(() => {
     if (status !== 'cooldown') return
-    if (cooldown <= 0) {
-      setStatus('idle')
-      setMessage('Device is ready.')
-      return
-    }
-    const timer = setTimeout(() => setCooldown(cooldown - 1), 1000)
+    const timer = setTimeout(() => {
+      const next = cooldown - 1
+      setCooldown(next)
+      // when the cooldown is over, the device is ready again
+      if (next <= 0) {
+        setStatus('idle')
+        setMessage('Device is ready.')
+      }
+    }, 1000)
     return () => clearTimeout(timer)
   }, [status, cooldown])
 
