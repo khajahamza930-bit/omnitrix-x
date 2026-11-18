@@ -1,19 +1,16 @@
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Filter, X } from "lucide-react";
 
-// The list of all aliens, with a search box and a filter by type.
 function AlienRoster({ aliens, selectedIndex, onSelect }) {
   const [query, setQuery] = useState("");
   const [type, setType] = useState("ALL");
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // all the different types, like FIRE or POWER
   const types = useMemo(
     () => ["ALL", ...new Set(aliens.map((alien) => alien.type))],
     [aliens]
   );
 
-  // we keep the real position (index) of each alien, so a click selects the right one
-  // even when the list is filtered
   const shown = aliens
     .map((alien, index) => ({ alien, index }))
     .filter(({ alien }) => {
@@ -22,13 +19,45 @@ function AlienRoster({ aliens, selectedIndex, onSelect }) {
       return matchesType && matchesName;
     });
 
+  if (isCollapsed) {
+    return (
+      <section className="ox-roster ox-panel" aria-label="Alien roster">
+        <div className="ox-panel__head">
+          <button
+            type="button"
+            className="ox-btn ox-btn--icon"
+            onClick={() => setIsCollapsed(false)}
+            aria-label="Expand roster"
+            style={{ padding: "4px 8px" }}
+          >
+            <Filter size={14} />
+          </button>
+          <span className="ox-label">ROSTER</span>
+          <span className="ox-counter">{shown.length}/{aliens.length}</span>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="ox-roster ox-panel" aria-label="Alien roster">
       <div className="ox-panel__head">
-        <span className="ox-label">Roster</span>
-        <span className="ox-label">
-          {shown.length} / {aliens.length}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Filter size={14} color="var(--ox-green)" />
+          <span className="ox-label">ALIEN ROSTER</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span className="ox-counter">{shown.length}/{aliens.length}</span>
+          <button
+            type="button"
+            className="ox-btn ox-btn--icon"
+            onClick={() => setIsCollapsed(true)}
+            aria-label="Collapse roster"
+            style={{ padding: "4px 8px" }}
+          >
+            <X size={14} />
+          </button>
+        </div>
       </div>
 
       <div className="ox-roster__tools">
@@ -43,7 +72,7 @@ function AlienRoster({ aliens, selectedIndex, onSelect }) {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by name"
+            placeholder="Search by name..."
             autoComplete="off"
           />
         </div>
@@ -66,9 +95,12 @@ function AlienRoster({ aliens, selectedIndex, onSelect }) {
       </div>
 
       {shown.length === 0 ? (
-        <p className="ox-roster__empty">
-          No alien matches. Clear the search or choose "All types".
-        </p>
+        <div className="ox-roster__empty">
+          <Filter size={32} style={{ opacity: 0.3, marginBottom: "12px" }} />
+          <p style={{ margin: 0, fontSize: "13px" }}>
+            No alien matches.<br />Clear the search or choose "All types".
+          </p>
+        </div>
       ) : (
         <ul className="ox-roster__list">
           {shown.map(({ alien, index }) => (
@@ -87,6 +119,9 @@ function AlienRoster({ aliens, selectedIndex, onSelect }) {
                   <strong>{alien.name}</strong>
                   <small>{alien.type}</small>
                 </span>
+                {index === selectedIndex && (
+                  <span className="ox-roster__indicator" aria-hidden="true" />
+                )}
               </button>
             </li>
           ))}

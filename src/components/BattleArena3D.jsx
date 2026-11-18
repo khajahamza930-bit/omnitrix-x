@@ -1,13 +1,13 @@
-import { Suspense, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { ContactShadows, Environment } from "@react-three/drei";
+import { Suspense, useRef, useState, useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { DoubleSide, AdditiveBlending } from "three";
+import { ContactShadows, Environment, Html } from "@react-three/drei";
 
 import alienModels from "./aliens/index";
 
 import "../styles/battle-arena.css";
 
-// Presentation adjustments are applied outside each alien's
-// original model so their internal animations remain untouched.
+// Presentation adjustments applied outside each alien model
 const ALIEN_PRESENTATION = Object.freeze({
   1:  { scale: 1.00, position: [0, 0, 0], rotationY: 0 },
   2:  { scale: 1.25, position: [0, 0, 0], rotationY: 0 },
@@ -22,6 +22,87 @@ const ALIEN_PRESENTATION = Object.freeze({
   11: { scale: 1.30, position: [0, 0, 0], rotationY: 0 },
 });
 
+// Alien-specific attack effect configurations
+const ALIEN_EFFECTS = Object.freeze({
+  1: { // Heatblast
+    color: "#ff682e",
+    trailColor: "#ffb84d",
+    particleColor: "#ff8833",
+    type: "fire",
+    projectileShape: "fireball",
+  },
+  2: { // Four Arms
+    color: "#ffcc55",
+    trailColor: "#ffdd88",
+    particleColor: "#ffaa22",
+    type: "physical",
+    projectileShape: "fist",
+  },
+  3: { // XLR8
+    color: "#4ddcff",
+    trailColor: "#88efff",
+    particleColor: "#00ffff",
+    type: "speed",
+    projectileShape: "blur",
+  },
+  4: { // Diamondhead
+    color: "#75eaff",
+    trailColor: "#aaffff",
+    particleColor: "#88ffff",
+    type: "crystal",
+    projectileShape: "shard",
+  },
+  5: { // Upgrade
+    color: "#44ff88",
+    trailColor: "#88ffaa",
+    particleColor: "#00ff66",
+    type: "tech",
+    projectileShape: "circuit",
+  },
+  6: { // Cannonbolt
+    color: "#ffaa33",
+    trailColor: "#ffcc66",
+    particleColor: "#ff8800",
+    type: "physical",
+    projectileShape: "sphere",
+  },
+  7: { // Wildmutt
+    color: "#ff8844",
+    trailColor: "#ffaa77",
+    particleColor: "#ff6622",
+    type: "physical",
+    projectileShape: "claw",
+  },
+  8: { // Ripjaws
+    color: "#33aaff",
+    trailColor: "#66ccff",
+    particleColor: "#0088ff",
+    type: "water",
+    projectileShape: "torpedo",
+  },
+  9: { // Grey Matter
+    color: "#88ff44",
+    trailColor: "#aaff88",
+    particleColor: "#66ff00",
+    type: "tech",
+    projectileShape: "pulse",
+  },
+  10: { // Stinkfly
+    color: "#aaff33",
+    trailColor: "#ccff66",
+    particleColor: "#88ff00",
+    type: "bio",
+    projectileShape: "goo",
+  },
+  11: { // Ghostfreak
+    color: "#b58aff",
+    trailColor: "#ccbbff",
+    particleColor: "#aa88ff",
+    type: "ghost",
+    projectileShape: "spectral",
+  },
+});
+
 function ArenaFloor() {
   const pylons = [
     [-5.05, -3.1],
@@ -32,7 +113,6 @@ function ArenaFloor() {
 
   return (
     <group>
-      {/* Large arena foundation */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.27, 0]}
@@ -46,7 +126,6 @@ function ArenaFloor() {
         />
       </mesh>
 
-      {/* Raised metallic combat deck */}
       <mesh position={[0, -0.1, 0]} receiveShadow castShadow>
         <cylinderGeometry args={[5.85, 6.05, 0.18, 64]} />
         <meshStandardMaterial
@@ -56,7 +135,6 @@ function ArenaFloor() {
         />
       </mesh>
 
-      {/* Upper deck surface */}
       <mesh position={[0, 0, 0]} receiveShadow>
         <cylinderGeometry args={[5.65, 5.85, 0.08, 64]} />
         <meshStandardMaterial
@@ -66,13 +144,11 @@ function ArenaFloor() {
         />
       </mesh>
 
-      {/* Recessed floor grid */}
       <gridHelper
         args={[24, 32, "#31583b", "#192b20"]}
         position={[0, -0.17, 0]}
       />
 
-      {/* Outer illuminated arena boundaries */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0.047, 0]}
@@ -97,7 +173,6 @@ function ArenaFloor() {
         />
       </mesh>
 
-      {/* Inner combat-zone rings */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0.046, 0]}
@@ -122,7 +197,6 @@ function ArenaFloor() {
         />
       </mesh>
 
-      {/* Sixteen radial deck markings */}
       {Array.from({ length: 16 }, (_, index) => {
         const angle = (index / 16) * Math.PI * 2;
         const radius = 4.55;
@@ -147,7 +221,6 @@ function ArenaFloor() {
         );
       })}
 
-      {/* Four illuminated perimeter pylons */}
       {pylons.map(([x, z], index) => (
         <group key={index} position={[x, 0, z]}>
           <mesh position={[0, 0.12, 0]} castShadow>
@@ -188,6 +261,7 @@ function ArenaFloor() {
     </group>
   );
 }
+
 function FighterPlatform({ position, active }) {
   return (
     <group position={position}>
@@ -219,7 +293,7 @@ function FighterPlatform({ position, active }) {
   );
 }
 
-function FighterModel({ alien, side, playerId, battleEvent }) {
+function FighterModel({ alien, side, playerId, battleEvent }){
   const group = useRef();
   const animation = useRef({
     sequence: 0,
@@ -239,7 +313,7 @@ function FighterModel({ alien, side, playerId, battleEvent }) {
   useFrame((state) => {
     if (!group.current) return;
 
-    const time = state.clock.elapsedTime;
+    const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
 
     if (
       battleEvent?.sequence &&
@@ -280,10 +354,10 @@ function FighterModel({ alien, side, playerId, battleEvent }) {
     if (current.kind === "attack" && elapsed <= duration) {
       horizontalOffset = -side * 0.72 * intensity;
       tilt = -side * 0.12 * intensity;
-    } else if (current.kind === "hit" && elapsed <= duration) {
+    } else if (current.kind === "hit" && elapsed <= duration){
       const knockback = isUltimate ? 1.45 : isSpecial ? 1.12 : 0.82;
       const lift = isUltimate ? 0.52 : isSpecial ? 0.38 : 0.25;
-      const recoilTilt = isUltimate ? 0.68 : isSpecial ? 0.50 : 0.36;
+      const recoilTilt = isUltimate ? 0.68 : isSpecial ? 0.50: 0.36;
       const bodyTwist = isUltimate ? 0.32 : isSpecial ? 0.23 : 0.15;
 
       horizontalOffset = side * knockback * intensity;
@@ -313,10 +387,19 @@ function FighterModel({ alien, side, playerId, battleEvent }) {
     <group
       ref={group}
       position={[side * 1.95, 0.18, 0]}
-      rotation={[0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]}
+      rotation={[0, side === -1 ? Math.PI / 2 : -Math.PI / 2,0]}
     >
       {Model ? (
-        <Suspense fallback={null}>
+        <Suspense fallback={
+  <mesh position={[0, 1, 0]}>
+    <icosahedronGeometry args={[0.65, 1]} />
+    <meshStandardMaterial
+      color="#8dff46"
+      wireframe
+      emissive="#367d32"
+    />
+  </mesh>
+}>
           <group position={presentation.position} rotation={[0, presentation.rotationY, 0]} scale={1.05 * presentation.scale}>
             <Model />
           </group>
@@ -334,7 +417,128 @@ function FighterModel({ alien, side, playerId, battleEvent }) {
     </group>
   );
 }
-function CombatEffect({ players, battleEvent }) {
+
+// Particle system for attack effects
+function AttackParticles({ 
+  active, 
+  count = 20, 
+  color = "#a5ff38", 
+  position = [0, 1, 0],
+  size = 0.15,
+  speed = 1.0,
+  spread = 1.0,
+  gravity = -0.5,
+  lifetime = 1.0
+}) {
+  const particlesRef = useRef([]);
+  const startTime = useRef(0);
+
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+    
+    if (active && particlesRef.current.length === 0) {
+      startTime.current = time;
+      const colors = new Float32Array(count * 3);
+      const positions = new Float32Array(count * 3);
+      const velocities = new Float32Array(count * 3);
+      const lifetimes = new Float32Array(count);
+      const sizes = new Float32Array(count);
+      
+      const baseColor = new THREE.Color(color);
+      
+      for (let i = 0; i < count; i++) {
+        const angle1 = Math.random() * Math.PI * 2;
+        const angle2 = Math.acos(2 * Math.random() - 1);
+        const speedVar = (0.5 + Math.random() * 0.5) * speed;
+        
+        positions[i * 3] = position[0];
+        positions[i * 3 + 1] = position[1];
+        positions[i * 3 + 2] = position[2];
+        
+        velocities[i * 3] = Math.sin(angle2) * Math.cos(angle1) * speedVar * spread;
+        velocities[i * 3 + 1] = Math.cos(angle2) * speedVar * spread + 2;
+        velocities[i * 3 + 2] = Math.sin(angle2) * Math.sin(angle1) * speedVar * spread;
+        
+        lifetimes[i] = 0.3 + Math.random() * 0.7;
+        sizes[i] = 0.5 + Math.random() * 0.5;
+        
+        colors[i * 3] = baseColor.r;
+        colors[i * 3 + 1] = baseColor.g;
+        colors[i * 3 + 2] = baseColor.b;
+      }
+      
+      particlesRef.current = [{
+        geometry: new THREE.BufferGeometry(),
+        material: new THREE.PointsMaterial({
+          size: size,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.9,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          sizeAttenuation: true,
+        }),
+        positions,
+        velocities,
+        lifetimes,
+        sizes,
+        startTime: time,
+      }];
+      
+      particlesRef.current[0].geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      particlesRef.current[0].geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      particlesRef.current[0].geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+      
+      const points = new THREE.Points(
+        particlesRef.current[0].geometry,
+        particlesRef.current[0].material
+      );
+      state.scene.add(points);
+      particlesRef.current[0].mesh = points;
+    }
+    
+    const _delta = time - startTime.current;
+    
+    particlesRef.current = particlesRef.current.filter(p => {
+      const elapsed = time - p.startTime;
+      if (elapsed > lifetime) {
+        if (p.mesh) state.scene.remove(p.mesh);
+        p.geometry.dispose();
+        p.material.dispose();
+        return false;
+      }
+      
+      const positions = p.geometry.attributes.position.array;
+      const sizes = p.geometry.attributes.aSize.array;
+      const count = positions.length / 3;
+      
+      for (let i = 0; i < count; i++) {
+        if (elapsed > p.lifetimes[i]) continue;
+        
+        positions[i * 3] += p.velocities[i * 3] * state.delta;
+        positions[i * 3 + 1] += p.velocities[i * 3 + 1] * state.delta;
+        positions[i * 3 + 2] += p.velocities[i * 3 + 2] * state.delta;
+        
+        p.velocities[i * 3 + 1] += gravity * state.delta;
+        
+        const lifeProgress = elapsed / p.lifetimes[i];
+        sizes[i] = p.sizes[i] * (1 - lifeProgress) * 0.5;
+      }
+      
+      p.geometry.attributes.position.needsUpdate = true;
+      p.geometry.attributes.aSize.needsUpdate = true;
+      p.material.size = size * (1 - elapsed / lifetime);
+      p.material.opacity = 0.9 * (1 - elapsed / lifetime);
+      
+      return true;
+    });
+  });
+
+  return null;
+}
+
+// Enhanced CombatEffect with alien-specific visuals
+function CombatEffect({ players, battleEvent, aliens }) {
   const projectile = useRef();
   const projectileMaterial = useRef();
   const projectileLight = useRef();
@@ -344,50 +548,68 @@ function CombatEffect({ players, battleEvent }) {
   const flashMaterial = useRef();
   const burstRing = useRef();
   const burstRingMaterial = useRef();
+  const shockwave = useRef();
+  const shockwaveMaterial = useRef();
+  const trailGroup = useRef();
+  const particlesActive = useRef(false);
+  const particlesPosition = useRef([0, 0, 0]);
+  const particlesColor = useRef("#a5ff38");
+  const particlesCount = useRef(0);
 
   const animation = useRef({
     sequence: 0,
     startedAt: 0,
     attackerSide: -1,
     attackType: "basic",
+    effectConfig: ALIEN_EFFECTS[1],
   });
+
+  // Initialize Three.js for particle system
+  const { scene: _sceneUnused } = useThree();
 
   useFrame((state) => {
     if (!battleEvent?.sequence) return;
 
-    const time = state.clock.elapsedTime;
+    const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
 
     if (animation.current.sequence !== battleEvent.sequence) {
       const attackerIndex = players.findIndex(
         (player) => player.id === battleEvent.attackerId
       );
 
+      const attacker = players[attackerIndex];
+      // const defender = players[1 - attackerIndex]; // used for future features
+      const attackerAlien = aliens.find(a => a.name.toLowerCase() === attacker?.alien?.toLowerCase());
+      const effectConfig = attackerAlien ? ALIEN_EFFECTS[attackerAlien.id] : ALIEN_EFFECTS[1];
+
       animation.current = {
         sequence: battleEvent.sequence,
         startedAt: time,
         attackerSide: attackerIndex === 1 ? 1 : -1,
         attackType: battleEvent.attackType || "basic",
+        effectConfig,
       };
 
-      const attackId = String(battleEvent.attackId || "").toLowerCase();
-      let effectColor = "#ffb45e";
-
-      if (/fire|inferno|flame/.test(attackId)) {
-        effectColor = "#ff682e";
-      } else if (/crystal|diamond/.test(attackId)) {
-        effectColor = "#75eaff";
-      } else if (/ghost|phantom|spectral/.test(attackId)) {
-        effectColor = "#b58aff";
-      } else if (battleEvent.attackType === "ultimate") {
-        effectColor = "#c9ff45";
-      } else if (battleEvent.attackType === "special") {
-        effectColor = "#4ddcff";
-      }
+      const particleColor = effectConfig.particleColor;
+      const effectColor = currentEffectConfig.color;
 
       projectileMaterial.current?.color.set(effectColor);
+      projectileMaterial.current?.emissive?.set(effectColor);
       impactMaterial.current?.color.set(effectColor);
       flashMaterial.current?.color.set(effectColor);
       burstRingMaterial.current?.color.set(effectColor);
+      shockwaveMaterial.current?.color.set(effectColor);
+
+      if (projectileLight.current) {
+        projectileLight.current.color.set(effectColor);
+      }
+
+      // Trail particles
+      particlesColor.current = particleColor;
+      setEffectConfig(effectConfig);
+      particlesPosition.current = [animation.current.attackerSide * 1.95, 1.05, 0.45];
+      particlesCount.current = battleEvent.attackType === "ultimate" ? 60 : battleEvent.attackType === "special" ? 40 : 25;
+      particlesActive.current = true;
     }
 
     const current = animation.current;
@@ -426,16 +648,27 @@ function CombatEffect({ players, battleEvent }) {
 
     const impactActive = elapsed >= duration * 0.52 && elapsed <= duration;
 
+    // Projectile animation
     if (projectile.current) {
       projectile.current.visible = elapsed <= duration * 0.55;
 
+      // Different projectile paths based on attack type
+      let yOffset = Math.sin(projectileProgress * Math.PI) * 0.65;
+      if (current.effectConfig.type === "speed") {
+        yOffset = Math.sin(projectileProgress * Math.PI * 2) * 0.3;
+      } else if (current.effectConfig.type === "ghost") {
+        yOffset = Math.sin(projectileProgress * Math.PI) * 0.8 + Math.sin(time * 10) * 0.1;
+      }
+
       projectile.current.position.set(
         startX + (endX - startX) * projectileProgress,
-        1.05 + Math.sin(projectileProgress * Math.PI) * 0.65,
-        0.45
+        1.05 + yOffset,
+        0.45 + Math.sin(projectileProgress * Math.PI * 3) * 0.15
       );
 
       projectile.current.scale.setScalar(projectileScale);
+      projectile.current.rotation.y = time * 5;
+      projectile.current.rotation.x = time * 3;
 
       if (projectileLight.current) {
         projectileLight.current.position.copy(projectile.current.position);
@@ -446,18 +679,40 @@ function CombatEffect({ players, battleEvent }) {
       }
     }
 
+    // Trail particles
+    if (particlesActive.current && elapsed < duration * 0.6 && trailGroup.current) {
+      // Trail handled by AttackParticles component
+    }
+
+    // Impact effects
     if (impact.current) {
       impact.current.visible = impactActive;
       impact.current.position.set(endX, 0.23, 0.35);
       impact.current.scale.setScalar(
         0.35 + impactProgress * shockwaveScale
       );
+      impact.current.rotation.z = time * (current.attackType === "ultimate" ? 2 : 1);
 
       if (impactMaterial.current) {
         impactMaterial.current.opacity = 0.95 * (1 - impactProgress);
       }
     }
 
+    // Shockwave ring
+    if (shockwave.current) {
+      shockwave.current.visible = impactActive;
+      shockwave.current.position.set(endX, 0.15, 0.35);
+      shockwave.current.scale.setScalar(
+        0.5 + impactProgress * shockwaveScale * 1.2
+      );
+      shockwave.current.rotation.x = -Math.PI / 2;
+
+      if (shockwaveMaterial.current) {
+        shockwaveMaterial.current.opacity = 0.6 * (1 - impactProgress);
+      }
+    }
+
+    // Flash
     if (flash.current) {
       flash.current.visible = impactActive;
       flash.current.position.set(endX, 1.05, 0.45);
@@ -475,12 +730,14 @@ function CombatEffect({ players, battleEvent }) {
       }
     }
 
+    // Burst ring
     if (burstRing.current) {
       burstRing.current.visible = impactActive;
       burstRing.current.position.set(endX, 1.05, 0.4);
       burstRing.current.scale.setScalar(
         0.3 + impactProgress * shockwaveScale * 0.7
       );
+      burstRing.current.rotation.x = Math.sin(time * 20) * 0.2;
 
       if (burstRingMaterial.current) {
         burstRingMaterial.current.opacity =
@@ -493,8 +750,11 @@ function CombatEffect({ players, battleEvent }) {
       if (impact.current) impact.current.visible = false;
       if (flash.current) flash.current.visible = false;
       if (burstRing.current) burstRing.current.visible = false;
+      if (shockwave.current) shockwave.current.visible = false;
+      particlesActive.current = false;
     }
 
+    // Camera shake
     const shakeStrength =
       current.attackType === "ultimate"
         ? 0.38
@@ -523,23 +783,104 @@ function CombatEffect({ players, battleEvent }) {
     state.camera.position.z = 8.8 - cameraPunch;
   });
 
+  const effectConfig = animation.current.effectConfig;
+  // Effect config from state (avoids ref access during render)
+  const currentEffectConfig = effectConfig || ALIEN_EFFECTS[1];
+  const isFire = currentEffectConfig.type === "fire";
+  const isSpeed = currentEffectConfig.type === "speed";
+  const isCrystal = currentEffectConfig.type === "crystal";
+  const isGhost = currentEffectConfig.type === "ghost";
+
   return (
     <>
-      <mesh ref={projectile} visible={false}>
-        <sphereGeometry args={[1, 24, 24]} />
+      {/* Projectile */}
+      <group>
+        <mesh ref={projectile} visible={false}>
+          {isFire && (
+            <>
+              <sphereGeometry args={[1, 16, 16]} />
+              <meshBasicMaterial
+                ref={projectileMaterial}
+                color={currentEffectConfig.color}
+                toneMapped={false}
+              />
+            </>
+          )}
+          {isCrystal && (
+            <>
+              <octahedronGeometry args={[0.8, 0]} />
+              <meshStandardMaterial
+                ref={projectileMaterial}
+                color={currentEffectConfig.color}
+                emissive={currentEffectConfig.color}
+                emissiveIntensity={1.5}
+                metalness={0.3}
+                roughness={0.4}
+              />
+            </>
+          )}
+          {isSpeed && (
+            <>
+              <capsuleGeometry args={[0.3, 1.5, 8, 16]} />
+              <meshBasicMaterial
+                ref={projectileMaterial}
+                color={currentEffectConfig.color}
+                transparent
+                opacity={0.8}
+                toneMapped={false}
+              />
+            </>
+          )}
+          {isGhost && (
+            <>
+              <torusGeometry args={[0.6, 0.15, 8, 32]} />
+              <meshBasicMaterial
+                ref={projectileMaterial}
+                color={currentEffectConfig.color}
+                transparent
+                opacity={0.7}
+                side={DoubleSide}
+                toneMapped={false}
+              />
+            </>
+          )}
+          {!isFire && !isCrystal && !isSpeed && !isGhost && (
+            <>
+              <sphereGeometry args={[1, 16, 16]} />
+              <meshBasicMaterial
+                ref={projectileMaterial}
+                color={currentEffectConfig.color}
+                toneMapped={false}
+              />
+            </>
+          )}
+        </mesh>
+
+        <pointLight
+          ref={projectileLight}
+          color={currentEffectConfig.color}
+          intensity={0}
+          distance={5}
+        />
+      </group>
+
+      {/* Impact shockwave */}
+      <mesh
+        ref={shockwave}
+        visible={false}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[0.45, 0.62, 64]} />
         <meshBasicMaterial
-          ref={projectileMaterial}
-          color="#ffb45e"
+          ref={shockwaveMaterial}
+          color={currentEffectConfig.color}
+          transparent
+          opacity={0}
+          depthWrite={false}
+          side={DoubleSide}
           toneMapped={false}
         />
       </mesh>
-
-      <pointLight
-        ref={projectileLight}
-        color="#ffb45e"
-        intensity={0}
-        distance={5}
-      />
 
       <mesh
         ref={impact}
@@ -549,7 +890,7 @@ function CombatEffect({ players, battleEvent }) {
         <ringGeometry args={[0.45, 0.62, 64]} />
         <meshBasicMaterial
           ref={impactMaterial}
-          color="#ffb45e"
+          color={currentEffectConfig.color}
           transparent
           opacity={0}
           depthWrite={false}
@@ -561,7 +902,7 @@ function CombatEffect({ players, battleEvent }) {
         <sphereGeometry args={[0.55, 24, 24]} />
         <meshBasicMaterial
           ref={flashMaterial}
-          color="#ffb45e"
+          color={currentEffectConfig.color}
           transparent
           opacity={0}
           depthWrite={false}
@@ -573,18 +914,31 @@ function CombatEffect({ players, battleEvent }) {
         <torusGeometry args={[0.7, 0.055, 12, 64]} />
         <meshBasicMaterial
           ref={burstRingMaterial}
-          color="#ffb45e"
+          color={currentEffectConfig.color}
           transparent
           opacity={0}
           depthWrite={false}
           toneMapped={false}
         />
       </mesh>
+
+      {/* Attack particles */}
+      <AttackParticles
+        active={particlesActive.current}
+        count={particlesCount.current}
+        color={particlesColor.current}
+        position={particlesPosition.current}
+        size={0.12}
+        speed={1.5}
+        spread={1.2}
+        gravity={-0.3}
+        lifetime={1.2}
+      />
     </>
   );
 }
-function BattleScene({ players, aliens, currentTurnPlayerId, battleEvent }) {
 
+function BattleScene({ players, aliens, currentTurnPlayerId, battleEvent }) {
   return (
     <>
       <color attach="background" args={["#070d09"]} />
@@ -608,14 +962,14 @@ function BattleScene({ players, aliens, currentTurnPlayerId, battleEvent }) {
       />
 
       <ArenaFloor />
-      <CombatEffect players={players} battleEvent={battleEvent} />
+      <CombatEffect players={players} battleEvent={battleEvent} aliens={aliens} />
 
       {players.map((player, index) => {
         const side = index === 0 ? -1 : 1;
         const alien = aliens.find(
-          (item) =>
-            item.name.toLowerCase() === player.alien?.toLowerCase()
-        );
+      (item) =>
+        item.name.toLowerCase() === (player.alien || "").toLowerCase()
+    );
         const active = player.id === currentTurnPlayerId;
 
         return (
@@ -666,6 +1020,59 @@ function StatusMeter({ label, value, type }) {
   );
 }
 
+// Victory/Defeat overlay component
+function BattleResult({ winner, myId, onAcknowledge }) {
+  const isVictory = winner.winnerId === myId;
+  const group = useRef();
+
+  useFrame((state) => {
+    if (group.current) {
+      const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+      group.current.rotation.y = Math.sin(time * 0.3) * 0.05;
+      group.current.position.y = Math.sin(time * 1.5) * 0.02;
+    }
+  });
+
+  return (
+    <Html
+      transform
+      position={[0, 2.5, 0]}
+      prepend
+      sprite
+      distanceFactor={10}
+      zIndexRange={[100, 100]}
+    >
+      <div
+        ref={group}
+        className={`ox-battle-result ${isVictory ? "ox-battle-result--victory" : "ox-battle-result--defeat"}`}
+        role="status"
+        aria-live="polite"
+        onClick={onAcknowledge}
+        style={{
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <div className="ox-battle-result__bg" />
+        <div className="ox-battle-result__content">
+          <div className="ox-battle-result__icon">
+            {isVictory ? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦" : "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§"}
+          </div>
+          <h2 className="ox-battle-result__title">
+            {isVictory ? "VICTORY" : "DEFEAT"}
+          </h2>
+          <p className="ox-battle-result__winner">
+            {isVictory 
+              ? "You have prevailed!" 
+              : `${winner.winnerName || "Opponent"} wins!`}
+          </p>
+          <span className="ox-battle-result__hint">Click to continue</span>
+        </div>
+      </div>
+    </Html>
+  );
+}
+
 export default function BattleArena3D({
   room,
   myId,
@@ -676,6 +1083,12 @@ export default function BattleArena3D({
   aliens = [],
 }) {
   const players = room?.players || [];
+  const [showResult, setShowResult] = useState(false);
+
+  // Show result overlay when battle finishes
+  useEffect(() => {
+    setShowResult(!!battleWinner);
+  }, [battleWinner]);
 
   if (!room || players.length !== 2) {
     return null;
@@ -758,6 +1171,13 @@ export default function BattleArena3D({
               currentTurnPlayerId={room.currentTurnPlayerId}
               battleEvent={battleEvent}
             />
+            {showResult && battleWinner && (
+              <BattleResult
+                winner={battleWinner}
+                myId={myId}
+                onAcknowledge={() => setShowResult(false)}
+              />
+            )}
           </Canvas>
 
           <div className="ox-arena__versus" aria-hidden="true">
@@ -767,15 +1187,15 @@ export default function BattleArena3D({
 
         <div className="ox-arena__turn">
           <span className="ox-arena__turn-light" />
-          {battleWinner
+          {battleWinner && !showResult
             ? "BATTLE COMPLETE"
             : canAttack
               ? "YOUR TURN"
-              : `${currentTurnName || currentTurnPlayer?.name || "OPPONENT"}'S TURN`}
+              : `${currentTurnName || currentTurnPlayer?.name|| "OPPONENT"}'S TURN`}
         </div>
       </div>
 
-      {battleWinner && (
+      {battleWinner && !showResult && (
         <div className="ox-arena__result" role="status">
           {battleWinner.winnerId === myId
             ? "VICTORY"

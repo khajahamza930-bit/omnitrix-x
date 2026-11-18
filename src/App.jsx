@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Zap,
@@ -9,6 +9,9 @@ import {
   Activity,
   Atom,
   Users,
+  Swords,
+  Shield,
+  Radio,
 } from "lucide-react";
 
 import aliens from "./data/aliens";
@@ -33,7 +36,6 @@ import {
 
 const AlienWheel = lazy(() => import("./components/AlienWheel"));
 
-// turns 5 into 05
 const pad = (number) => String(number).padStart(2, "0");
 
 function App() {
@@ -56,6 +58,7 @@ function App() {
   const [selectedMoveId, setSelectedMoveId] = useState("");
   const [isBusy, setIsBusy] = useState(false);
   const [connected, setConnected] = useState(socket.connected);
+  const [activeView, setActiveView] = useState("command"); // command, battle, multiplayer
 
   const alien = aliens[selectedIndex];
   const isInBattle = room?.status === "battle";
@@ -113,6 +116,7 @@ function App() {
         "Both players are ready. Battle started!"
       );
       setMultiplayerError("");
+      setActiveView("battle");
     }
 
     function handleBattleUpdated(payload) {
@@ -166,6 +170,7 @@ function App() {
 
       setIsReady(false);
       setBattleWinner(null);
+      setActiveView("multiplayer");
       setMultiplayerMessage("Your friend left the room.");
     }
 
@@ -184,7 +189,6 @@ function App() {
     };
   }, []);
 
-  // keeps the "server connected" badge up to date
   useEffect(() => {
     function handleConnect() {
       setConnected(true);
@@ -203,10 +207,10 @@ function App() {
     };
   }, []);
 
-  // the left and right arrow keys browse the aliens (not while you type in a box)
   useEffect(() => {
     function handleKey(event) {
       if (showOmnitrixIntro) return;
+      if (activeView !== "command") return;
 
       const tag = event.target?.tagName;
       if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
@@ -217,12 +221,10 @@ function App() {
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  });
+  }, [showOmnitrixIntro, activeView]);
 
   function selectAlien(index) {
-    const nextIndex =
-      (index + aliens.length) % aliens.length;
-
+    const nextIndex = (index + aliens.length) % aliens.length;
     setSelectedIndex(nextIndex);
     setIsTransformed(false);
     setIsTransforming(false);
@@ -279,6 +281,7 @@ function App() {
 
       setRoom(result.room);
       setShowFriends(true);
+      setActiveView("multiplayer");
       setBattleWinner(null);
       setMultiplayerMessage(
         "Room created! Share the code with your friend."
@@ -317,6 +320,7 @@ function App() {
 
       setRoom(result.room);
       setShowFriends(true);
+      setActiveView("multiplayer");
       setBattleWinner(null);
       setMultiplayerMessage(
         "Joined the room! Choose your alien and get ready."
@@ -332,7 +336,6 @@ function App() {
 
   function handleReadyToggle() {
     const nextReady = !isReady;
-
     setIsReady(nextReady);
     sendReady(nextReady);
     setMultiplayerError("");
@@ -368,6 +371,7 @@ function App() {
     setRoom(null);
     setIsReady(false);
     setBattleWinner(null);
+    setActiveView("command");
     setMultiplayerMessage("You left the room.");
     setMultiplayerError("");
   }
@@ -410,6 +414,7 @@ function App() {
       style={{ "--alien-color": alien.color }}
     >
       <div className="ox-wrap">
+        {/* Top Navigation Bar */}
         <header className="ox-topbar">
           <div className="ox-brand">
             <div className="ox-brand__mark">
@@ -430,19 +435,59 @@ function App() {
               {connected ? "Server online" : "Server offline"}
             </span>
 
-            <button
-              type="button"
-              className="ox-btn"
-              aria-expanded={showFriends || isInBattle}
-              onClick={() => setShowFriends((current) => (isInBattle ? true : !current))}
-            >
-              <Users size={16} />
-              {isInBattle ? "Battle controls" : showFriends ? "Close friends" : "Play with friends"}
-            </button>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                className="ox-btn"
+                onClick={() => {
+                  setActiveView("command");
+                  setShowFriends(false);
+                }}
+                style={{ 
+                  background: activeView === "command" ? "var(--ox-green)" : "",
+                  color: activeView === "command" ? "#040806" : ""
+                }}
+              >
+                <Activity size={16} />
+                Command
+              </button>
+              
+              <button
+                type="button"
+                className="ox-btn"
+                onClick={() => {
+                  setShowFriends(!showFriends);
+                  setActiveView("multiplayer");
+                }}
+                style={{ 
+                  background: (showFriends || activeView === "multiplayer") ? "var(--ox-green)" : "",
+                  color: (showFriends || activeView === "multiplayer") ? "#040806" : ""
+                }}
+              >
+                <Users size={16} />
+                Multiplayer
+              </button>
+              
+              {isInBattle && (
+                <button
+                  type="button"
+                  className="ox-btn"
+                  onClick={() => setActiveView("battle")}
+                  style={{ 
+                    background: activeView === "battle" ? "var(--ox-green)" : "",
+                    color: activeView === "battle" ? "#040806" : ""
+                  }}
+                >
+                  <Swords size={16} />
+                  Battle
+                </button>
+              )}
+            </div>
           </div>
         </header>
 
-        {(showFriends || isInBattle || room?.status === "finished") && (
+        {/* Multiplayer Panel */}
+        {(showFriends || isInBattle || room?.status === "finished") && activeView === "multiplayer" && (
           <FriendsPanel
             connected={connected}
             myId={socket.id}
@@ -472,10 +517,12 @@ function App() {
           />
         )}
 
-        {isInBattle && (
+        {/* Battle Arena */}
+        {isInBattle && activeView === "battle" && (
           <Suspense
             fallback={
               <div className="ox-arena-loading" role="status">
+                <Radio size={20} style={{ marginRight: "8px" }} />
                 Preparing 3D battlefield...
               </div>
             }
@@ -492,123 +539,128 @@ function App() {
           </Suspense>
         )}
 
-        <div className="ox-pagehead">
-          <div>
-            <p className="ox-label">
-              Alien database / 001â€”{String(aliens.length).padStart(3, "0")}
-            </p>
-            <h2 className="ox-title">
-              Choose your <span>alien</span>
-            </h2>
-          </div>
-
-          <button type="button" className="ox-btn" onClick={resetOmnitrix}>
-            <RotateCcw size={15} />
-            Reset
-          </button>
-        </div>
-
-        <div className="ox-console">
-          <AlienRoster
-            aliens={aliens}
-            selectedIndex={selectedIndex}
-            onSelect={selectAlien}
-          />
-
-          <div className="ox-center">
-            <section className="ox-viewport ox-panel" aria-label="Alien selector">
-              <div className="ox-panel__head">
-                <span className="ox-label">Omnitrix alien selector</span>
-                <span className="ox-counter">
-                  {pad(selectedIndex + 1)} / {pad(aliens.length)}
-                </span>
+        {/* Command Centre - only show when not in battle */}
+        {activeView === "command" && (
+          <>
+            <div className="ox-pagehead">
+              <div>
+                <p className="ox-label">
+                  Alien database / 001—{String(aliens.length).padStart(3, "0")}
+                </p>
+                <h2 className="ox-title">
+                  Choose your <span>alien</span>
+                </h2>
               </div>
 
-              <div className="ox-viewport__stage">
-                <Suspense
-                  fallback={
-                    <div
-                      className="ox-viewport__loading"
-                      role="status"
-                      aria-live="polite"
-                    >
-                      Loading 3D DNA selector...
-                    </div>
-                  }
-                >
-                  <AlienWheel
-                    aliens={aliens}
-                    selectedIndex={selectedIndex}
-                    onSelect={selectAlien}
-                  />
-                </Suspense>
-              </div>
-            </section>
-
-            <div className="ox-actions">
-              <button
-                type="button"
-                className="ox-btn ox-btn--icon"
-                onClick={() => selectAlien(selectedIndex - 1)}
-                aria-label="Previous alien"
-              >
-                <ChevronLeft />
-              </button>
-
-              <button
-                type="button"
-                className={
-                  isTransformed
-                    ? "ox-btn ox-btn--warn"
-                    : "ox-btn ox-btn--primary"
-                }
-                onClick={transform}
-                disabled={!isPowered || isTransforming}
-              >
-                {isTransforming ? (
-                  <>
-                    <Activity size={19} className="spin-icon" />
-                    Transforming...
-                  </>
-                ) : isTransformed ? (
-                  <>
-                    <RotateCcw size={19} />
-                    Revert form
-                  </>
-                ) : (
-                  <>
-                    <Zap size={19} fill="currentColor" />
-                    Transform
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                className="ox-btn ox-btn--icon"
-                onClick={() => selectAlien(selectedIndex + 1)}
-                aria-label="Next alien"
-              >
-                <ChevronRight />
+              <button type="button" className="ox-btn" onClick={resetOmnitrix}>
+                <RotateCcw size={15} />
+                Reset
               </button>
             </div>
 
-            <p className="ox-state" role="status">
-              <span className={isTransformed ? "ox-dot" : "ox-dot ox-dot--idle"} />
-              {isTransforming
-                ? "DNA sequence activating"
-                : isTransformed
-                  ? `Transformed: ${alien.name}`
-                  : isPowered
-                    ? "Awaiting transformation"
-                    : "System offline"}
-            </p>
+            <div className="ox-console">
+              <AlienRoster
+                aliens={aliens}
+                selectedIndex={selectedIndex}
+                onSelect={selectAlien}
+              />
 
-            <p className="ox-hint">Tip: use the left and right arrow keys to browse the aliens.</p>
-          </div>
+              <div className="ox-center">
+                <section className="ox-viewport ox-panel" aria-label="Alien selector">
+                  <div className="ox-panel__head">
+                    <span className="ox-label">Omnitrix alien selector</span>
+                    <span className="ox-counter">
+                      {pad(selectedIndex + 1)} / {pad(aliens.length)}
+                    </span>
+                  </div>
 
-          <AlienDossier alien={alien} />
-        </div>
+                  <div className="ox-viewport__stage">
+                    <Suspense
+                      fallback={
+                        <div
+                          className="ox-viewport__loading"
+                          role="status"
+                          aria-live="polite"
+                        >
+                          Loading 3D DNA selector...
+                        </div>
+                      }
+                    >
+                      <AlienWheel
+                        aliens={aliens}
+                        selectedIndex={selectedIndex}
+                        onSelect={selectAlien}
+                      />
+                    </Suspense>
+                  </div>
+                </section>
+
+                <div className="ox-actions">
+                  <button
+                    type="button"
+                    className="ox-btn ox-btn--icon"
+                    onClick={() => selectAlien(selectedIndex - 1)}
+                    aria-label="Previous alien"
+                  >
+                    <ChevronLeft />
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      isTransformed
+                        ? "ox-btn ox-btn--warn"
+                        : "ox-btn ox-btn--primary"
+                    }
+                    onClick={transform}
+                    disabled={!isPowered || isTransforming}
+                  >
+                    {isTransforming ? (
+                      <>
+                        <Activity size={19} className="spin-icon" />
+                        Transforming...
+                      </>
+                    ) : isTransformed ? (
+                      <>
+                        <RotateCcw size={19} />
+                        Revert form
+                      </>
+                    ) : (
+                      <>
+                        <Zap size={19} fill="currentColor" />
+                        Transform
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="ox-btn ox-btn--icon"
+                    onClick={() => selectAlien(selectedIndex + 1)}
+                    aria-label="Next alien"
+                  >
+                    <ChevronRight />
+                  </button>
+                </div>
+
+                <p className="ox-state" role="status">
+                  <span className={isTransformed ? "ox-dot" : "ox-dot ox-dot--idle"} />
+                  {isTransforming
+                    ? "DNA sequence activating"
+                    : isTransformed
+                      ? `Transformed: ${alien.name}`
+                      : isPowered
+                        ? "Awaiting transformation"
+                        : "System offline"}
+                </p>
+
+                <p className="ox-hint">Tip: use the left and right arrow keys to browse the aliens.</p>
+              </div>
+
+              <AlienDossier alien={alien} />
+            </div>
+          </>
+        )}
 
         <footer className="ox-footer">
           <span className="ox-label">
@@ -673,4 +725,3 @@ function App() {
 }
 
 export default App;
-

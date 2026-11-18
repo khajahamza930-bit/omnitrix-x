@@ -1,15 +1,17 @@
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Zap, Power, Atom, Activity } from "lucide-react";
 import "../styles/omnitrix.css";
 
 export default function Omnitrix3D({ onOpen }) {
   const [opening, setOpening] = useState(false);
+  const [powerState, setPowerState] = useState("online");
 
   const handleOpen = () => {
     if (opening) return;
 
     setOpening(true);
+    setPowerState("initializing");
 
     setTimeout(() => {
       onOpen?.();
@@ -19,6 +21,34 @@ export default function Omnitrix3D({ onOpen }) {
   return (
     <main className="omnitrix-intro">
       <div className="omnitrix-atmosphere" />
+
+      {/* Status bar */}
+      <div style={{
+        position: "absolute",
+        top: "24px",
+        left: "24px",
+        right: "24px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        fontFamily: "var(--ox-font-mono)",
+        fontSize: "10px",
+        letterSpacing: "0.15em",
+        color: "var(--ox-text-muted)",
+        zIndex: 10
+      }}>
+        <span>OMNITRIX X // v2.0</span>
+        <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ 
+            width: "6px", 
+            height: "6px", 
+            background: "var(--ox-green)", 
+            borderRadius: "50%",
+            boxShadow: "0 0 6px var(--ox-green)"
+          }} />
+          {powerState.toUpperCase()}
+        </span>
+      </div>
 
       <motion.div
         className={`omnitrix-device ${opening ? "is-opening" : ""}`}
@@ -75,9 +105,35 @@ export default function Omnitrix3D({ onOpen }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
           >
-            <p className="system-label">ALIEN TECHNOLOGY DETECTED</p>
-            <h1>OMNITRIX <span>X</span></h1>
-            <p className="system-subtitle">
+            <div className="system-label" style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center", 
+              gap: "8px",
+              marginBottom: "16px"
+            }}>
+              <Atom size={14} />
+              ALIEN TECHNOLOGY DETECTED
+              <Atom size={14} />
+            </div>
+            <h1 style={{ 
+              fontSize: "clamp(48px, 8vw, 96px)", 
+              fontWeight: 900, 
+              letterSpacing: "-0.02em",
+              margin: "0 0 8px 0",
+              background: "linear-gradient(180deg, #a6ff4d, #8bff3a)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text"
+            }}>
+              OMNITRIX <span style={{ color: "#8bff3a" }}>X</span>
+            </h1>
+            <p className="system-subtitle" style={{ 
+              fontSize: "14px", 
+              letterSpacing: "0.2em", 
+              color: "var(--ox-text-secondary)",
+              marginBottom: "40px"
+            }}>
               YOUR NEXT TRANSFORMATION AWAITS
             </p>
 
@@ -85,7 +141,8 @@ export default function Omnitrix3D({ onOpen }) {
               className="activate-omnitrix"
               onClick={handleOpen}
             >
-              <span>⏻</span> ACTIVATE OMNITRIX
+              <Zap size={18} fill="currentColor" />
+              ACTIVATE OMNITRIX
             </button>
           </motion.div>
         )}
@@ -97,7 +154,15 @@ export default function Omnitrix3D({ onOpen }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <span className="loading-dot" />
+          <span className="loading-dot" style={{ 
+            display: "flex", 
+            gap: "6px",
+            marginRight: "12px"
+          }}>
+            <span style={{ width: 8, height: 8, background: "var(--ox-green)", borderRadius: "50%", animation: "ox-pulse 1s ease-in-out infinite" }} />
+            <span style={{ width: 8, height: 8, background: "var(--ox-green)", borderRadius: "50%", animation: "ox-pulse 1s ease-in-out infinite 0.3s" }} />
+            <span style={{ width: 8, height: 8, background: "var(--ox-green)", borderRadius: "50%", animation: "ox-pulse 1s ease-in-out infinite 0.6s" }} />
+          </span>
           INITIALIZING ALIEN INTERFACE
         </motion.div>
       )}

@@ -1,42 +1,53 @@
-@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
-/* OMNITRIX X design system.
-   Everything here starts with "ox-", so it cannot clash with the old styles.
-   Idea: a device console. Chamfered corners, thin lines, and green only for things that are active. */
+/* ============================================================
+   OMNITRIX X — DESIGN SYSTEM
+   Premium futuristic alien command centre
+   ============================================================ */
 
 :root {
-  /* surfaces, from the darkest to the lightest */
-  --ox-bg: #070b09;
-  --ox-surface: #0d1410;
-  --ox-surface-2: #131c17;
-  --ox-line: #22302a;
-  --ox-line-strong: #34493f;
-
-  /* text */
+  /* ===== SURFACES ===== */
+  --ox-bg: #040806;
+  --ox-bg-elevated: #070d0a;
+  --ox-surface: #0a110c;
+  --ox-surface-2: #0e1813;
+  --ox-surface-3: #131e1a;
+  
+  /* ===== LINES ===== */
+  --ox-line: #1a2a21;
+  --ox-line-strong: #243a30;
+  --ox-line-glow: rgba(139, 255, 58, 0.15);
+  
+  /* ===== TEXT ===== */
   --ox-text: #e8efe9;
-  --ox-text-dim: #93a69b;
-
-  /* Omnitrix green. Use it only for selected, active and main actions */
+  --ox-text-secondary: #a8b8aa;
+  --ox-text-muted: #6b7d6e;
+  
+  /* ===== OMNITRIX GREEN ===== */
   --ox-green: #8bff3a;
+  --ox-green-bright: #a6ff4d;
   --ox-green-dim: #3f9a1c;
-
-  /* status colors. Use them only for warnings and errors */
+  --ox-green-glow: rgba(139, 255, 58, 0.3);
+  
+  /* ===== STATUS ===== */
   --ox-warn: #ffb020;
   --ox-danger: #ff5a4d;
-
-  /* fonts */
+  --ox-info: #4ddcff;
+  
+  /* ===== TYPOGRAPHY ===== */
   --ox-font-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
   --ox-font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-
-  /* text sizes */
-  --ox-text-xs: 0.75rem;
-  --ox-text-sm: 0.875rem;
+  --ox-font-mono: "JetBrains Mono", "SF Mono", monospace;
+  
+  --ox-text-xs: 0.7rem;
+  --ox-text-sm: 0.85rem;
   --ox-text-md: 1rem;
   --ox-text-lg: 1.25rem;
   --ox-text-xl: 1.75rem;
   --ox-text-2xl: 2.5rem;
-
-  /* spacing, in steps of 4px */
+  --ox-text-3xl: 3.5rem;
+  
+  /* ===== SPACING ===== */
   --ox-space-1: 4px;
   --ox-space-2: 8px;
   --ox-space-3: 12px;
@@ -44,76 +55,74 @@
   --ox-space-5: 24px;
   --ox-space-6: 32px;
   --ox-space-7: 48px;
-
-  /* how big the cut corner is */
-  --ox-cut: 12px;
+  --ox-space-8: 64px;
+  
+  /* ===== CHAMFER ===== */
+  --ox-cut: 14px;
+  --ox-cut-sm: 8px;
+  
+  /* ===== TRANSITIONS ===== */
+  --ox-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ---------- base ---------- */
+/* ===== BASE ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   font-family: var(--ox-font-body);
+  font-weight: 400;
+  color: var(--ox-text);
+  background: var(--ox-bg);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  overflow-x: hidden;
 }
 
-button,
-input,
-select,
-textarea {
-  font-family: inherit;
-}
-
-h1,
-h2,
-h3,
-h4 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--ox-font-display);
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 
-/* a clear outline when you use the keyboard */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
 :focus-visible {
   outline: 2px solid var(--ox-green);
   outline-offset: 3px;
 }
 
-/* ---------- panel: a box with a cut corner and a thin line ---------- */
-
+/* ===== CHAMFERED PANEL ===== */
 .ox-panel {
   position: relative;
   isolation: isolate;
-  background: var(--ox-line-strong);
-  clip-path: polygon(
-    var(--ox-cut) 0,
-    100% 0,
-    100% calc(100% - var(--ox-cut)),
-    calc(100% - var(--ox-cut)) 100%,
-    0 100%,
-    0 var(--ox-cut)
-  );
+  background: linear-gradient(145deg, var(--ox-surface-2), var(--ox-surface));
+  border: 1px solid var(--ox-line-strong);
+  border-radius: 2px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 
-/* the inside of the panel, 1px smaller, so the outside shows as a thin line */
 .ox-panel::before {
   content: "";
   position: absolute;
-  inset: 1px;
+  inset: 0;
   z-index: -1;
-  background: var(--ox-surface);
-  clip-path: polygon(
-    calc(var(--ox-cut) - 0.5px) 0,
-    100% 0,
-    100% calc(100% - var(--ox-cut) + 0.5px),
-    calc(100% - var(--ox-cut) + 0.5px) 100%,
-    0 100%,
-    0 calc(var(--ox-cut) - 0.5px)
-  );
+  background: linear-gradient(135deg, rgba(139,255,58,0.05), transparent 50%);
+  pointer-events: none;
 }
 
-/* ---------- button ---------- */
-
+/* ===== BUTTON ===== */
 .ox-btn {
-  --ox-cut: 8px;
+  --cut: var(--ox-cut-sm);
   position: relative;
   isolation: isolate;
   display: inline-flex;
@@ -123,117 +132,154 @@ h4 {
   min-height: 44px;
   padding: 0 var(--ox-space-5);
   border: 0;
-  background: var(--ox-line-strong);
+  background: var(--ox-surface-3);
   color: var(--ox-text);
   font: 600 var(--ox-text-sm) / 1 var(--ox-font-display);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  cursor: pointer;
+  transition: all var(--ox-transition);
   clip-path: polygon(
-    var(--ox-cut) 0,
+    var(--cut) 0,
     100% 0,
-    100% calc(100% - var(--ox-cut)),
-    calc(100% - var(--ox-cut)) 100%,
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
     0 100%,
-    0 var(--ox-cut)
+    0 var(--cut)
   );
-  transition: color 0.15s;
 }
 
-.ox-btn::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  z-index: -1;
-  background: var(--ox-surface-2);
-  clip-path: polygon(
-    calc(var(--ox-cut) - 0.5px) 0,
-    100% 0,
-    100% calc(100% - var(--ox-cut) + 0.5px),
-    calc(100% - var(--ox-cut) + 0.5px) 100%,
-    0 100%,
-    0 calc(var(--ox-cut) - 0.5px)
-  );
-  transition: background 0.15s;
-}
-
-.ox-btn:hover:not(:disabled)::before {
-  background: var(--ox-line-strong);
-}
-
-/* the main action of a screen */
-.ox-btn--primary {
+.ox-btn:hover:not(:disabled) {
   background: var(--ox-green);
-  color: var(--ox-green);
-}
-
-.ox-btn--primary:hover:not(:disabled) {
-  color: var(--ox-bg);
-}
-
-.ox-btn--primary:hover:not(:disabled)::before {
-  background: var(--ox-green);
-}
-
-/* a dangerous action, like leaving a room */
-.ox-btn--danger {
-  background: var(--ox-danger);
-  color: var(--ox-danger);
-}
-
-.ox-btn--danger:hover:not(:disabled) {
-  color: var(--ox-bg);
-}
-
-.ox-btn--danger:hover:not(:disabled)::before {
-  background: var(--ox-danger);
+  color: #040806;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--ox-green-glow);
 }
 
 .ox-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* the cut corners would hide the outline, so on focus the button shows a plain outline */
-.ox-btn:focus-visible {
-  clip-path: none;
+.ox-btn--primary {
+  background: var(--ox-green);
+  color: #040806;
 }
 
-/* ---------- small pieces ---------- */
+.ox-btn--danger {
+  background: var(--ox-danger);
+  color: #fff;
+}
 
-/* a small heading for a group of information */
+/* ===== LABEL ===== */
 .ox-label {
-  font: 500 var(--ox-text-xs) / 1.2 var(--ox-font-display);
+  font: 500 var(--ox-text-xs) / 1.4 var(--ox-font-display);
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ox-text-dim);
+  color: var(--ox-text-muted);
 }
 
-/* a small tag, like FIRE or POWER */
+/* ===== TAG ===== */
 .ox-tag {
-  display: inline-block;
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
   border: 1px solid var(--ox-line-strong);
   font: 600 var(--ox-text-xs) / 1 var(--ox-font-display);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ox-green);
+  background: rgba(139,255,58,0.05);
 }
 
-/* a bar made of small cells, like a battery.
-   Use it like this: <div class="ox-cells" style="--value: 75"></div> */
-.ox-cells {
-  --cell: 9px;
-  height: 10px;
-  background:
-    linear-gradient(var(--ox-green), var(--ox-green)) 0 0 / calc(var(--value, 0) * 1%) 100% no-repeat,
-    var(--ox-line);
-  -webkit-mask: repeating-linear-gradient(90deg, #000 0 calc(var(--cell) - 2px), transparent 0 var(--cell));
-  mask: repeating-linear-gradient(90deg, #000 0 calc(var(--cell) - 2px), transparent 0 var(--cell));
+/* ===== BADGE ===== */
+.ox-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--ox-line-strong);
+  font: 600 var(--ox-text-xs) / 1 var(--ox-font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ox-text-secondary);
+  background: rgba(10,17,12,0.8);
+  white-space: nowrap;
 }
 
-/* ---------- for people who turn animations off ---------- */
+.ox-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ox-green);
+  box-shadow: 0 0 8px var(--ox-green);
+  animation: ox-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
 
+@keyframes ox-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+.ox-dot--off {
+  background: var(--ox-text-muted);
+  box-shadow: none;
+  animation: none;
+}
+
+/* ===== FIELD ===== */
+.ox-field {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--ox-space-4);
+  background: var(--ox-surface);
+  border: 1px solid var(--ox-line-strong);
+  color: var(--ox-text);
+  font: 400 var(--ox-text-md) / 1 var(--ox-font-body);
+  transition: border-color var(--ox-transition), box-shadow var(--ox-transition);
+  border-radius: 2px;
+}
+
+.ox-field:focus {
+  outline: none;
+  border-color: var(--ox-green);
+  box-shadow: 0 0 0 2px var(--ox-green-glow);
+}
+
+.ox-field--code {
+  font-family: var(--ox-font-mono);
+  font-size: var(--ox-text-lg);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ===== COUNTER ===== */
+.ox-counter {
+  font-family: var(--ox-font-mono);
+  font-size: var(--ox-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ox-green);
+  white-space: nowrap;
+}
+
+/* ===== SCREEN READER ONLY ===== */
+.ox-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -242,5 +288,9 @@ h4 {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  
+  .ox-dot {
+    animation: none !important;
   }
 }

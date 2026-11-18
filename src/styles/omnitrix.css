@@ -1,345 +1,298 @@
+@import "./tokens.css";
 
-/* =====================================
-   OMNITRIX X — 3D OPENING SCREEN
-   ===================================== */
+/* ============================================================
+   OMNITRIX X — INTRO / DEVICE
+   ============================================================ */
 
 .omnitrix-intro {
-  --omni-green: #65ff36;
-  --omni-dark: #030805;
-
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 50;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 22px;
-  overflow: hidden;
-  perspective: 1100px;
-  background:
-    radial-gradient(ellipse at 50% 42%, #14331b 0%, #07110a 38%, #020403 78%);
-  color: #e9ffe9;
-  font-family: Arial, sans-serif;
+  background: 
+    radial-gradient(ellipse at 50% 40%, rgba(139,255,58,0.08), transparent 50%),
+    radial-gradient(ellipse at 0% 100%, rgba(63,154,28,0.06), transparent 40%),
+    var(--ox-bg);
+  background-image:
+    linear-gradient(rgba(139,255,58,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,255,58,0.02) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 40%, rgba(139,255,58,0.08), transparent 50%),
+    var(--ox-bg);
+  background-size: 48px 48px, 48px 48px, auto, auto;
+  padding: 20px;
 }
 
 .omnitrix-atmosphere {
   position: absolute;
-  inset: -20%;
-  pointer-events: none;
+  inset: 0;
   background:
-    radial-gradient(ellipse at 50% 45%, #39ff241c 0%, transparent 38%),
-    repeating-radial-gradient(
-      circle at center,
-      transparent 0 60px,
-      #4bff3810 61px 62px,
-      transparent 63px 100px
-    );
-  animation: omni-atmosphere 8s ease-in-out infinite alternate;
+    radial-gradient(circle at 50% 30%, rgba(139,255,58,0.06), transparent 40%),
+    radial-gradient(circle at 30% 70%, rgba(63,154,28,0.04), transparent 30%);
+  pointer-events: none;
 }
 
+/* Device */
 .omnitrix-device {
   position: relative;
-  z-index: 1;
-  width: min(72vw, 340px);
-  aspect-ratio: 0.83;
+  perspective: 800px;
+  margin-bottom: 50px;
   transform-style: preserve-3d;
-  filter: drop-shadow(0 25px 30px #000);
-  animation: omni-float 4s ease-in-out infinite;
-}
-
-.watch-body {
-  position: absolute;
-  inset: 12% 3%;
-  z-index: 2;
-  border-radius: 32% 32% 35% 35%;
-  background: linear-gradient(
-    135deg,
-    #778079 0%,
-    #303833 12%,
-    #080d0a 28%,
-    #414942 43%,
-    #101511 58%,
-    #606a61 75%,
-    #171d19 100%
-  );
-  box-shadow:
-    inset 0 0 0 3px #89948a,
-    inset 0 0 0 9px #161c18,
-    inset 0 8px 14px #b6c0b433,
-    inset 0 -15px 22px #000,
-    0 0 0 2px #050805,
-    0 0 24px #41ff3025;
 }
 
 .watch-strap {
   position: absolute;
-  left: 29%;
-  width: 42%;
-  height: 29%;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      #0b100d 0 12px,
-      #303832 13px 15px,
-      #101511 16px 26px
-    );
-  border: 4px solid #343d36;
-  box-shadow: inset 0 0 10px #000;
+  left: 50%;
+  width: 92px;
+  height: 180px;
+  background: linear-gradient(180deg, #0a140f, #050a07);
+  border: 1px solid var(--ox-line-strong);
+  transform: translateX(-50%);
+  z-index: -1;
 }
 
-.strap-top {
-  top: -7%;
-  border-radius: 22px 22px 8px 8px;
-  transform: translateZ(-12px) rotateX(10deg);
+.watch-strap-top {
+  top: -140px;
+  clip-path: polygon(20% 0, 80% 0, 70% 100%, 30% 100%);
 }
 
-.strap-bottom {
-  bottom: -7%;
-  border-radius: 8px 8px 22px 22px;
-  transform: translateZ(-12px) rotateX(-10deg);
+.watch-strap-bottom {
+  bottom: -140px;
+  clip-path: polygon(30% 0, 70% 0, 80% 100%, 20% 100%);
+}
+
+.watch-body {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  transform-style: preserve-3d;
 }
 
 .watch-bezel {
   position: absolute;
-  inset: 8%;
+  inset: 0;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: conic-gradient(
-    from 15deg,
-    #101510,
-    #8c978c,
-    #272e29,
-    #5e685f,
-    #0b100d,
-    #687268,
-    #151a16,
-    #a3ada2,
-    #101510
-  );
-  box-shadow:
-    inset 0 0 0 5px #0b100d,
-    inset 0 0 0 9px #687268,
-    inset 0 0 0 14px #161c17,
-    0 8px 15px #000;
+  background: linear-gradient(145deg, #1a2a21, #0a140f);
+  box-shadow: 
+    0 0 60px rgba(0,0,0,0.5),
+    inset 0 0 40px rgba(0,0,0,0.6);
+  border: 2px solid var(--ox-line-strong);
 }
 
 .metal-rim {
   position: absolute;
-  inset: 12%;
-  display: grid;
-  place-items: center;
+  inset: 8px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #101510, #59635a 35%, #111611 70%);
-  box-shadow:
-    inset 0 0 0 4px #202820,
-    inset 0 0 0 8px #030603,
-    0 0 0 3px #080c08;
+  background: linear-gradient(145deg, #2a3d2e, #141e17);
+  border: 1px solid var(--ox-line-strong);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
 }
 
 .green-ring {
   position: absolute;
-  inset: 12%;
-  display: grid;
-  place-items: center;
+  inset: 20px;
   border-radius: 50%;
-  background: #071109;
-  border: 5px solid #43ff24;
-  box-shadow:
-    0 0 8px #55ff36,
-    0 0 20px #39ff3680,
-    inset 0 0 18px #38ff3550;
-  animation: omni-pulse 2.4s ease-in-out infinite;
+  background: conic-gradient(from 0deg, var(--ox-green), var(--ox-green-dim), var(--ox-green));
+  padding: 4px;
+  box-shadow: 0 0 30px var(--ox-green-glow);
+  animation: ox-spin 8s linear infinite;
+}
+
+@keyframes ox-spin {
+  to { transform: rotate(360deg); }
 }
 
 .omnitrix-screen {
-  width: 82%;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
+  position: absolute;
+  inset: 14px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 25%, #c5ff95, #70ff29 45%, #1f9c18 100%);
-  box-shadow:
-    inset 0 0 12px #e1ffbc,
-    inset 0 -12px 24px #087b18,
-    0 0 30px #5aff2a80;
+  background: radial-gradient(circle at 50% 50%, #0a1f12, #040806);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
 }
 
 .hourglass-symbol {
-  width: 68%;
-  height: 68%;
-  filter: drop-shadow(0 0 5px #030903);
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 0 10px var(--ox-green-glow));
 }
 
 .device-bolt {
   position: absolute;
-  z-index: 4;
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
+  background: var(--ox-green);
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 25%, #d7e0d6, #5d675e 50%, #101510 80%);
-  border: 2px solid #101510;
-  box-shadow: 0 0 0 2px #4c554d;
+  box-shadow: 0 0 12px var(--ox-green);
 }
 
-.bolt-one {
-  top: 7%;
-  left: 46%;
+.bolt-one { top: 8px; left: 50%; transform: translateX(-50%); }
+.bolt-two { bottom: 8px; left: 50%; transform: translateX(-50%); }
+.bolt-three { left: 8px; top: 50%; transform: translateY(-50%); }
+.bolt-four { right: 8px; top: 50%; transform: translateY(-50%); }
+
+/* Opening animation */
+.omnitrix-device.is-opening {
+  animation: ox-open 1.5s ease-out forwards;
 }
 
-.bolt-two {
-  right: 7%;
-  top: 46%;
+@keyframes ox-open {
+  0% { 
+    transform: rotateX(9deg) rotateY(-8deg) scale(1);
+  }
+  50% {
+    filter: brightness(2) drop-shadow(0 0 60px var(--ox-green));
+  }
+  100% {
+    transform: rotateX(0) rotateY(0) scale(1.08);
+  }
 }
 
-.bolt-three {
-  bottom: 7%;
-  left: 46%;
-}
-
-.bolt-four {
-  left: 7%;
-  top: 46%;
-}
-
+/* Intro text */
 .omnitrix-intro-text {
-  z-index: 2;
   text-align: center;
-  padding: 0 16px;
+  z-index: 2;
+  max-width: 600px;
 }
 
 .system-label {
-  color: var(--omni-green);
-  font-size: 10px;
-  letter-spacing: 4px;
-  text-shadow: 0 0 12px #39ff3680;
-}
-
-.omnitrix-intro-text h1 {
-  margin: 10px 0;
-  font-size: clamp(30px, 7vw, 48px);
-  font-weight: 900;
-  font-style: italic;
-  letter-spacing: 3px;
-  text-shadow: 0 0 22px #39ff3630;
-}
-
-.omnitrix-intro-text h1 span {
-  color: var(--omni-green);
+  font-family: var(--ox-font-mono);
+  font-size: clamp(10px, 2vw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--ox-green);
+  margin-bottom: 16px;
 }
 
 .system-subtitle {
-  color: #9daea0;
-  font-size: 10px;
-  letter-spacing: 2px;
+  font-size: clamp(12px, 2vw, 14px);
+  letter-spacing: 0.2em;
+  color: var(--ox-text-secondary);
+  margin-bottom: 40px;
 }
 
 .activate-omnitrix {
-  margin-top: 20px;
-  padding: 14px 25px;
-  border: 1px solid #70ff4b;
-  border-radius: 5px;
-  color: #eaffdf;
-  background: linear-gradient(180deg, #214a20, #08170a);
-  box-shadow:
-    0 0 18px #39ff3630,
-    inset 0 0 12px #39ff3615;
-  font-weight: 800;
-  letter-spacing: 2px;
+  font-family: var(--ox-font-display);
+  font-weight: 700;
+  font-size: clamp(14px, 2vw, 16px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #040806;
+  background: var(--ox-green);
+  border: none;
+  padding: 16px 40px;
   cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.activate-omnitrix span {
-  margin-right: 8px;
-  color: var(--omni-green);
-  font-size: 18px;
+  transition: all var(--ox-transition);
+  box-shadow: 0 0 40px var(--ox-green-glow);
+  width: 100%;
+  max-width: 320px;
 }
 
 .activate-omnitrix:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 30px #39ff3660;
+  box-shadow: 0 0 60px var(--ox-green-glow);
+  background: var(--ox-green-bright);
 }
 
-.activate-omnitrix:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 4px;
-}
-
+/* Opening message */
 .opening-message {
-  z-index: 2;
-  color: var(--omni-green);
-  font-size: 11px;
-  letter-spacing: 2px;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3,7,5,0.95);
+  backdrop-filter: blur(8px);
+  font-family: var(--ox-font-mono);
+  font-size: clamp(12px, 2vw, 14px);
+  letter-spacing: 0.16em;
+  color: var(--ox-green);
+  padding: 20px;
   text-align: center;
 }
 
-.loading-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 8px;
-  border-radius: 50%;
-  background: var(--omni-green);
-  box-shadow: 0 0 12px var(--omni-green);
-  animation: omni-pulse 0.7s infinite alternate;
-}
-
-.is-opening .green-ring {
-  animation: omni-open-flash 1.8s ease-out forwards;
-}
-
-.is-opening .omnitrix-screen {
-  animation: omni-screen-flash 1.8s ease-out forwards;
-}
-
-@keyframes omni-float {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 0 -8px; }
-}
-
-@keyframes omni-pulse {
-  from { opacity: 0.75; }
-  to { opacity: 1; }
-}
-
-@keyframes omni-atmosphere {
-  from { opacity: 0.5; transform: scale(0.97); }
-  to { opacity: 1; transform: scale(1.04); }
-}
-
-@keyframes omni-open-flash {
-  0%, 45% { box-shadow: 0 0 12px #39ff36; }
-  60% { box-shadow: 0 0 55px #39ff36, 0 0 100px #39ff36; }
-  100% { box-shadow: 0 0 35px #39ff36; }
-}
-
-@keyframes omni-screen-flash {
-  0%, 55% { filter: brightness(1); }
-  70% { filter: brightness(2.5); }
-  100% { filter: brightness(1.2); }
+/* ===== RESPONSIVE ===== */
+@media (max-width: 700px) {
+  .watch-body {
+    width: 220px;
+    height: 220px;
+  }
+  
+  .watch-strap {
+    width: 80px;
+    height: 150px;
+  }
+  
+  .watch-strap-top {
+    top: -120px;
+  }
+  
+  .watch-strap-bottom {
+    bottom: -120px;
+  }
+  
+  .green-ring {
+    inset: 16px;
+  }
+  
+  .omnitrix-screen {
+    inset: 10px;
+  }
+  
+  .hourglass-symbol {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .device-bolt {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .omnitrix-intro {
+    gap: 30px;
+  }
 }
 
 @media (max-width: 480px) {
-  .omnitrix-device {
-    width: min(78vw, 300px);
+  .watch-body {
+    width: 180px;
+    height: 180px;
   }
-
-  .system-label {
-    letter-spacing: 2px;
+  
+  .watch-strap {
+    width: 70px;
+    height: 130px;
   }
-
-  .system-subtitle {
-    font-size: 9px;
+  
+  .green-ring {
+    inset: 12px;
+  }
+  
+  .omnitrix-screen {
+    inset: 8px;
+  }
+  
+  .hourglass-symbol {
+    width: 42px;
+    height: 42px;
+  }
+  
+  .omnitrix-intro {
+    gap: 20px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .omnitrix-device,
-  .omnitrix-atmosphere,
   .green-ring,
-  .loading-dot {
-    animation: none;
+  .omnitrix-device.is-opening {
+    animation: none !important;
+    transition: none !important;
   }
 }
