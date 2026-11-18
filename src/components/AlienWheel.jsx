@@ -1,6 +1,6 @@
 import Omnitrix3DWatch from "./Omnitrix3DWatch";
 import "../styles/alien-wheel.css";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function AlienWheel({
   aliens = [],

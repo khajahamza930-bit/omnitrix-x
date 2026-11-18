@@ -12,7 +12,6 @@ import {
   Heart,
 } from "lucide-react";
 
-// Multiplayer presentation only. Server-owned room data controls combat values.
 function FriendsPanel({
   connected,
   myId,
@@ -26,7 +25,6 @@ function FriendsPanel({
   isInBattle,
   canAttack,
   currentTurnName,
-  battleWinner,
   availableMoves = [],
   selectedMoveId,
   onMoveSelect,
@@ -43,11 +41,23 @@ function FriendsPanel({
   const myPlayer = room?.players?.find((player) => player.id === myId);
   const myEnergy = myPlayer?.energy ?? 0;
 
+  // use the chosen move, or the basic move, or the first move
   const selectedMove =
     availableMoves.find((move) => move.id === selectedMoveId) ||
     availableMoves.find((move) => move.type === "basic") ||
     availableMoves[0] ||
     null;
+
+  // attack is not allowed if no move is chosen or energy is too low
+  const cannotUseMove = !selectedMove || myEnergy < selectedMove.energyCost;
+
+  // text on the attack button
+  let attackLabel = "Select a move";
+  if (!canAttack) {
+    attackLabel = "Waiting for opponent";
+  } else if (selectedMove) {
+    attackLabel = `Use ${selectedMove.name}`;
+  }
 
   return (
     <section className="ox-friends ox-panel" aria-label="Play with friends">
@@ -68,20 +78,31 @@ function FriendsPanel({
             {connected ? "Server connected" : "Connecting to server"}
           </span>
 
-          {!isInBattle && (
+          {onClose && (
             <button
               type="button"
-              className="ox-btn ox-btn--icon"
+              className="ox-btn"
               onClick={onClose}
-              aria-label="Close the multiplayer panel"
+              aria-label="Close multiplayer panel"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           )}
         </div>
       </div>
 
       <div className="ox-panel__body">
+        {message && (
+          <p className="ox-note" role="status">
+            {message}
+          </p>
+        )}
+        {error && (
+          <p className="ox-note ox-note--error" role="alert">
+            {error}
+          </p>
+        )}
+
         {!room ? (
           <div>
             <div className="ox-formrow">
@@ -170,19 +191,48 @@ function FriendsPanel({
             </div>
 
             <div className="ox-friends__grid ox-room__players">
-              {room.players.map((player, index) => {
+              {room.players.map((player) => {
                 const health = Math.max(0, Math.min(100, player.health ?? 100));
-                const energy = Math.max(0, Math.min(100, player.energy ?? 0));
+                const energy = Math.max(0, Math.min(100, player.energy ?? 100));
+                // true for the player whose turn it is
+                const hasTurn = player.id === room.currentTurnPlayerId;
 
                 return (
-                  <div className="ox-player" key={player.id}>
-                    <span className="ox-label">
-                      <span className="ox-dot" />
-                      {index === 0 ? "Player 1 / host" : "Player 2"}
-                      {player.id === room.currentTurnPlayerId && isInBattle
-                        ? " · ACTIVE TURN"
-                        : ""}
-                    </span>
+                  <div
+                    key={player.id}
+                    className="ox-player"
+                    style={{
+                      borderLeft: hasTurn
+                        ? "3px solid var(--ox-green)"
+                        : "3px solid transparent",
+                      background: hasTurn
+                        ? "rgba(139,255,58,0.05)"
+                        : "rgba(7,13,9,0.6)",
+                    }}
+                  >
+                    <div className="ox-player__top">
+                      <span
+                        style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                      >
+                        <span
+                          className="ox-dot"
+                          style={{
+                            background: player.ready
+                              ? "var(--ox-green)"
+                              : "var(--ox-warn)",
+                            boxShadow: `0 0 6px ${
+                              player.ready ? "var(--ox-green)" : "var(--ox-warn)"
+                            }`,
+                          }}
+                        />
+                        {player.id === myId ? "YOU" : "OPPONENT"}
+                      </span>
+                      {hasTurn && (
+                        <span className="ox-tag" style={{ fontSize: "9px" }}>
+                          ACTIVE
+                        </span>
+                      )}
+                    </div>
 
                     <h3 className="ox-player__name">
                       {player.name}
@@ -194,14 +244,16 @@ function FriendsPanel({
                     </p>
 
                     <span className={player.ready ? "ox-tag" : "ox-tag ox-tag--idle"}>
-                      {player.ready ? "Ready" : "Not ready"}
+                      {player.ready ? "READY" : "NOT READY"}
                     </span>
 
-                    {!isInBattle && (
+                    {isInBattle && (
                       <>
                         <div className="ox-meter">
                           <div className="ox-meter__label">
-                            <span><Heart size={13} /> Health</span>
+                            <span>
+                              <Heart size={13} /> Health
+                            </span>
                             <strong>{health}/100</strong>
                           </div>
                           <div
@@ -221,7 +273,9 @@ function FriendsPanel({
 
                         <div className="ox-meter">
                           <div className="ox-meter__label">
-                            <span><Zap size={13} /> Energy</span>
+                            <span>
+                              <Zap size={13} /> Energy
+                            </span>
                             <strong>{energy}/100</strong>
                           </div>
                           <div
@@ -261,7 +315,9 @@ function FriendsPanel({
 
               {isInBattle && room.players.length === 2 && (
                 <span className="ox-tag">
-                  {canAttack ? "Your turn" : `${currentTurnName || "Opponent"}'s turn`}
+                  {canAttack
+                    ? "Your turn"
+                    : `${currentTurnName || "Opponent"}'s turn`}
                 </span>
               )}
 
@@ -304,9 +360,7 @@ function FriendsPanel({
                                 : `Requires ${move.energyCost} energy`
                             }
                           >
-                            <span className="ox-move__type">
-                              {move.type}
-                            </span>
+                            <span className="ox-move__type">{move.type}</span>
                             <strong className="ox-move__name">{move.name}</strong>
                             <span className="ox-move__description">
                               {move.description}
@@ -335,18 +389,10 @@ function FriendsPanel({
                         type="button"
                         className="ox-btn ox-btn--primary"
                         onClick={onAttack}
-                        disabled={
-                          !canAttack ||
-                          !selectedMove ||
-                          myEnergy < (selectedMove?.energyCost ?? 0)
-                        }
+                        disabled={!canAttack || cannotUseMove}
                       >
                         <Swords size={16} />
-                        {!canAttack
-                          ? "Waiting for opponent"
-                          : selectedMove
-                            ? `Use ${selectedMove.name}`
-                            : "Select a move"}
+                        {attackLabel}
                       </button>
                     </div>
                   </>
@@ -357,33 +403,8 @@ function FriendsPanel({
                 )}
               </section>
             )}
-
-            {room.status === "finished" && battleWinner && (
-              <p className="ox-winner">
-                {battleWinner.winnerId === myId
-                  ? "Victory!"
-                  : `${battleWinner.winnerName} wins!`}
-              </p>
-            )}
           </div>
         )}
-
-        {message && (
-          <p className="ox-msg" role="status" aria-live="polite">
-            {message}
-          </p>
-        )}
-
-        {error && (
-          <p className="ox-msg ox-msg--error" role="alert">
-            {error}
-          </p>
-        )}
-
-        <p className="ox-note">
-          Local testing: both players can test on this computer using separate
-          browser tabs. Friends on other computers need the deployed server.
-        </p>
       </div>
     </section>
   );

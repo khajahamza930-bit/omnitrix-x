@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Power, Atom, Activity } from "lucide-react";
+import { Zap, Atom } from "lucide-react";
 import "../styles/omnitrix.css";
 
 export default function Omnitrix3D({ onOpen }) {

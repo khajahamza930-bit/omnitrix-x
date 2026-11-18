@@ -10,7 +10,6 @@ import {
   Atom,
   Users,
   Swords,
-  Shield,
   Radio,
 } from "lucide-react";
 
