@@ -1,6 +1,14 @@
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { DoubleSide } from "three";
+import {
+  AdditiveBlending,
+  BufferAttribute,
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  Points,
+  PointsMaterial,
+} from "three";
 import { ContactShadows, Environment, Html } from "@react-three/drei";
 
 import alienModels from "./aliens/index";
@@ -418,120 +426,137 @@ function FighterModel({ alien, side, playerId, battleEvent }){
   );
 }
 
+// take a burst of particles out of the scene and free its memory
+function removeBurst(burst) {
+  burst.scene.remove(burst.points);
+  burst.geometry.dispose();
+  burst.material.dispose();
+}
+
 // Particle system for attack effects
-function AttackParticles({ 
-  active, 
-  count = 20, 
-  color = "#a5ff38", 
+// a new burst starts every time burstId changes
+function AttackParticles({
+  burstId,
+  count = 20,
+  color = "#a5ff38",
   position = [0, 1, 0],
   size = 0.15,
   speed = 1.0,
   spread = 1.0,
   gravity = -0.5,
-  lifetime = 1.0
+  lifetime = 1.0,
 }) {
-  const particlesRef = useRef([]);
-  const startTime = useRef(0);
+  // all bursts that are alive right now (this array is never replaced)
+  const bursts = useRef([]);
+  const lastBurstId = useRef(null);
+  const lastTime = useRef(0);
+
+  // when this component goes away, clean up the particles
+  useEffect(() => {
+    const aliveBursts = bursts.current;
+
+    return () => {
+      aliveBursts.forEach(removeBurst);
+      aliveBursts.length = 0;
+    };
+  }, []);
 
   useFrame((state) => {
-    const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
-    
-    if (active && particlesRef.current.length === 0) {
-      startTime.current = time;
-      const colors = new Float32Array(count * 3);
+    const time = state.clock.elapsedTime;
+
+    // time since the last frame (we measure it here so it is always correct)
+    if (lastTime.current === 0) lastTime.current = time;
+    const delta = Math.min(time - lastTime.current, 0.1);
+    lastTime.current = time;
+
+    // a new attack happened, so start a new burst
+    if (burstId && burstId !== lastBurstId.current) {
+      lastBurstId.current = burstId;
+
+      const baseColor = new Color(color);
       const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
       const velocities = new Float32Array(count * 3);
       const lifetimes = new Float32Array(count);
-      const sizes = new Float32Array(count);
-      
-      const baseColor = new THREE.Color(color);
-      
+
       for (let i = 0; i < count; i++) {
         const angle1 = Math.random() * Math.PI * 2;
         const angle2 = Math.acos(2 * Math.random() - 1);
         const speedVar = (0.5 + Math.random() * 0.5) * speed;
-        
+
         positions[i * 3] = position[0];
         positions[i * 3 + 1] = position[1];
         positions[i * 3 + 2] = position[2];
-        
+
         velocities[i * 3] = Math.sin(angle2) * Math.cos(angle1) * speedVar * spread;
         velocities[i * 3 + 1] = Math.cos(angle2) * speedVar * spread + 2;
         velocities[i * 3 + 2] = Math.sin(angle2) * Math.sin(angle1) * speedVar * spread;
-        
+
         lifetimes[i] = 0.3 + Math.random() * 0.7;
-        sizes[i] = 0.5 + Math.random() * 0.5;
-        
+
         colors[i * 3] = baseColor.r;
         colors[i * 3 + 1] = baseColor.g;
         colors[i * 3 + 2] = baseColor.b;
       }
-      
-      particlesRef.current = [{
-        geometry: new THREE.BufferGeometry(),
-        material: new THREE.PointsMaterial({
-          size: size,
-          vertexColors: true,
-          transparent: true,
-          opacity: 0.9,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-          sizeAttenuation: true,
-        }),
-        positions,
+
+      const geometry = new BufferGeometry();
+      geometry.setAttribute("position", new BufferAttribute(positions, 3));
+      geometry.setAttribute("color", new BufferAttribute(colors, 3));
+
+      const material = new PointsMaterial({
+        size: size,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        blending: AdditiveBlending,
+        sizeAttenuation: true,
+      });
+
+      const points = new Points(geometry, material);
+      // the particles move after they are created, so do not hide them by mistake
+      points.frustumCulled = false;
+      state.scene.add(points);
+
+      bursts.current.push({
+        points,
+        geometry,
+        material,
+        scene: state.scene,
         velocities,
         lifetimes,
-        sizes,
         startTime: time,
-      }];
-      
-      particlesRef.current[0].geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      particlesRef.current[0].geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      particlesRef.current[0].geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
-      
-      const points = new THREE.Points(
-        particlesRef.current[0].geometry,
-        particlesRef.current[0].material
-      );
-      state.scene.add(points);
-      particlesRef.current[0].mesh = points;
+      });
     }
-    
-    const _delta = time - startTime.current;
-    
-    particlesRef.current = particlesRef.current.filter(p => {
-      const elapsed = time - p.startTime;
+
+    // move the particles, and remove bursts that are finished
+    for (let b = bursts.current.length - 1; b >= 0; b--) {
+      const burst = bursts.current[b];
+      const elapsed = time - burst.startTime;
+
       if (elapsed > lifetime) {
-        if (p.mesh) state.scene.remove(p.mesh);
-        p.geometry.dispose();
-        p.material.dispose();
-        return false;
+        removeBurst(burst);
+        bursts.current.splice(b, 1);
+        continue;
       }
-      
-      const positions = p.geometry.attributes.position.array;
-      const sizes = p.geometry.attributes.aSize.array;
-      const count = positions.length / 3;
-      
-      for (let i = 0; i < count; i++) {
-        if (elapsed > p.lifetimes[i]) continue;
-        
-        positions[i * 3] += p.velocities[i * 3] * state.delta;
-        positions[i * 3 + 1] += p.velocities[i * 3 + 1] * state.delta;
-        positions[i * 3 + 2] += p.velocities[i * 3 + 2] * state.delta;
-        
-        p.velocities[i * 3 + 1] += gravity * state.delta;
-        
-        const lifeProgress = elapsed / p.lifetimes[i];
-        sizes[i] = p.sizes[i] * (1 - lifeProgress) * 0.5;
+
+      const positions = burst.geometry.attributes.position.array;
+      const total = positions.length / 3;
+
+      for (let i = 0; i < total; i++) {
+        if (elapsed > burst.lifetimes[i]) continue;
+
+        positions[i * 3] += burst.velocities[i * 3] * delta;
+        positions[i * 3 + 1] += burst.velocities[i * 3 + 1] * delta;
+        positions[i * 3 + 2] += burst.velocities[i * 3 + 2] * delta;
+
+        burst.velocities[i * 3 + 1] += gravity * delta;
       }
-      
-      p.geometry.attributes.position.needsUpdate = true;
-      p.geometry.attributes.aSize.needsUpdate = true;
-      p.material.size = size * (1 - elapsed / lifetime);
-      p.material.opacity = 0.9 * (1 - elapsed / lifetime);
-      
-      return true;
-    });
+
+      burst.geometry.attributes.position.needsUpdate = true;
+      burst.material.size = size * (1 - elapsed / lifetime);
+      burst.material.opacity = 0.9 * (1 - elapsed / lifetime);
+    }
   });
 
   return null;
@@ -540,7 +565,6 @@ function AttackParticles({
 // Enhanced CombatEffect with alien-specific visuals
 function CombatEffect({ players, battleEvent, aliens }) {
   const projectile = useRef();
-  const projectileMaterial = useRef();
   const projectileLight = useRef();
   const impact = useRef();
   const impactMaterial = useRef();
@@ -550,75 +574,42 @@ function CombatEffect({ players, battleEvent, aliens }) {
   const burstRingMaterial = useRef();
   const shockwave = useRef();
   const shockwaveMaterial = useRef();
-  const trailGroup = useRef();
-  const particlesActive = useRef(false);
-  const particlesPosition = useRef([0, 0, 0]);
-  const particlesColor = useRef("#a5ff38");
-  const particlesCount = useRef(0);
 
-  const animation = useRef({
-    sequence: 0,
-    startedAt: 0,
-    attackerSide: -1,
-    attackType: "basic",
-    effectConfig: ALIEN_EFFECTS[1],
-  });
+  // which attack is playing and when it started
+  const animation = useRef({ sequence: 0, startedAt: 0 });
 
-  // Initialize Three.js for particle system
-  const { scene: _sceneUnused } = useThree();
+  // work out how this attack should look (straight from the props)
+  const attackerIndex = players.findIndex(
+    (player) => player.id === battleEvent?.attackerId
+  );
+  const attacker = players[attackerIndex];
+  const attackerAlien = aliens.find(
+    (alien) => alien.name.toLowerCase() === attacker?.alien?.toLowerCase()
+  );
+  const effectConfig = ALIEN_EFFECTS[attackerAlien?.id] || ALIEN_EFFECTS[1];
+  const attackerSide = attackerIndex === 1 ? 1 : -1;
+  const attackType = battleEvent?.attackType || "basic";
+
+  let particleCount = 25;
+  if (attackType === "ultimate") particleCount = 60;
+  else if (attackType === "special") particleCount = 40;
 
   useFrame((state) => {
     if (!battleEvent?.sequence) return;
 
-    const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+    const time = state.clock.elapsedTime;
 
+    // a new attack started, so remember when it began
     if (animation.current.sequence !== battleEvent.sequence) {
-      const attackerIndex = players.findIndex(
-        (player) => player.id === battleEvent.attackerId
-      );
-
-      const attacker = players[attackerIndex];
-      // const defender = players[1 - attackerIndex]; // used for future features
-      const attackerAlien = aliens.find(a => a.name.toLowerCase() === attacker?.alien?.toLowerCase());
-      const effectConfig = attackerAlien ? ALIEN_EFFECTS[attackerAlien.id] : ALIEN_EFFECTS[1];
-
-      animation.current = {
-        sequence: battleEvent.sequence,
-        startedAt: time,
-        attackerSide: attackerIndex === 1 ? 1 : -1,
-        attackType: battleEvent.attackType || "basic",
-        effectConfig,
-      };
-
-      const particleColor = effectConfig.particleColor;
-      const effectColor = currentEffectConfig.color;
-
-      projectileMaterial.current?.color.set(effectColor);
-      projectileMaterial.current?.emissive?.set(effectColor);
-      impactMaterial.current?.color.set(effectColor);
-      flashMaterial.current?.color.set(effectColor);
-      burstRingMaterial.current?.color.set(effectColor);
-      shockwaveMaterial.current?.color.set(effectColor);
-
-      if (projectileLight.current) {
-        projectileLight.current.color.set(effectColor);
-      }
-
-      // Trail particles
-      particlesColor.current = particleColor;
-      setEffectConfig(effectConfig);
-      particlesPosition.current = [animation.current.attackerSide * 1.95, 1.05, 0.45];
-      particlesCount.current = battleEvent.attackType === "ultimate" ? 60 : battleEvent.attackType === "special" ? 40 : 25;
-      particlesActive.current = true;
+      animation.current = { sequence: battleEvent.sequence, startedAt: time };
     }
 
-    const current = animation.current;
-    const elapsed = time - current.startedAt;
+    const elapsed = time - animation.current.startedAt;
 
     const duration =
-      current.attackType === "ultimate"
+      attackType === "ultimate"
         ? 1.65
-        : current.attackType === "special"
+        : attackType === "special"
           ? 1.25
           : 1.05;
 
@@ -629,20 +620,20 @@ function CombatEffect({ players, battleEvent, aliens }) {
       Math.min((progress - 0.52) / 0.48, 1)
     );
 
-    const startX = current.attackerSide * 1.95;
-    const endX = -current.attackerSide * 1.95;
+    const startX = attackerSide * 1.95;
+    const endX = -attackerSide * 1.95;
 
     const projectileScale =
-      current.attackType === "ultimate"
+      attackType === "ultimate"
         ? 0.5
-        : current.attackType === "special"
+        : attackType === "special"
           ? 0.34
           : 0.24;
 
     const shockwaveScale =
-      current.attackType === "ultimate"
+      attackType === "ultimate"
         ? 3.8
-        : current.attackType === "special"
+        : attackType === "special"
           ? 2.8
           : 2.0;
 
@@ -652,11 +643,11 @@ function CombatEffect({ players, battleEvent, aliens }) {
     if (projectile.current) {
       projectile.current.visible = elapsed <= duration * 0.55;
 
-      // Different projectile paths based on attack type
+      // Different projectile paths based on the alien
       let yOffset = Math.sin(projectileProgress * Math.PI) * 0.65;
-      if (current.effectConfig.type === "speed") {
+      if (effectConfig.type === "speed") {
         yOffset = Math.sin(projectileProgress * Math.PI * 2) * 0.3;
-      } else if (current.effectConfig.type === "ghost") {
+      } else if (effectConfig.type === "ghost") {
         yOffset = Math.sin(projectileProgress * Math.PI) * 0.8 + Math.sin(time * 10) * 0.1;
       }
 
@@ -674,14 +665,9 @@ function CombatEffect({ players, battleEvent, aliens }) {
         projectileLight.current.position.copy(projectile.current.position);
         projectileLight.current.intensity =
           projectile.current.visible
-            ? current.attackType === "ultimate" ? 7 : 4
+            ? attackType === "ultimate" ? 7 : 4
             : 0;
       }
-    }
-
-    // Trail particles
-    if (particlesActive.current && elapsed < duration * 0.6 && trailGroup.current) {
-      // Trail handled by AttackParticles component
     }
 
     // Impact effects
@@ -691,7 +677,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
       impact.current.scale.setScalar(
         0.35 + impactProgress * shockwaveScale
       );
-      impact.current.rotation.z = time * (current.attackType === "ultimate" ? 2 : 1);
+      impact.current.rotation.z = time * (attackType === "ultimate" ? 2 : 1);
 
       if (impactMaterial.current) {
         impactMaterial.current.opacity = 0.95 * (1 - impactProgress);
@@ -720,7 +706,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
       const flashScale =
         0.2 +
         Math.sin(impactProgress * Math.PI) *
-          (current.attackType === "ultimate" ? 2.0 : 1.35);
+          (attackType === "ultimate" ? 2.0 : 1.35);
 
       flash.current.scale.setScalar(flashScale);
 
@@ -751,14 +737,13 @@ function CombatEffect({ players, battleEvent, aliens }) {
       if (flash.current) flash.current.visible = false;
       if (burstRing.current) burstRing.current.visible = false;
       if (shockwave.current) shockwave.current.visible = false;
-      particlesActive.current = false;
     }
 
     // Camera shake
     const shakeStrength =
-      current.attackType === "ultimate"
+      attackType === "ultimate"
         ? 0.38
-        : current.attackType === "special"
+        : attackType === "special"
           ? 0.24
           : 0.13;
 
@@ -783,13 +768,11 @@ function CombatEffect({ players, battleEvent, aliens }) {
     state.camera.position.z = 8.8 - cameraPunch;
   });
 
-  const effectConfig = animation.current.effectConfig;
-  // Effect config from state (avoids ref access during render)
-  const currentEffectConfig = effectConfig || ALIEN_EFFECTS[1];
-  const isFire = currentEffectConfig.type === "fire";
-  const isSpeed = currentEffectConfig.type === "speed";
-  const isCrystal = currentEffectConfig.type === "crystal";
-  const isGhost = currentEffectConfig.type === "ghost";
+  // the shape of the projectile depends on the alien
+  const isFire = effectConfig.type === "fire";
+  const isSpeed = effectConfig.type === "speed";
+  const isCrystal = effectConfig.type === "crystal";
+  const isGhost = effectConfig.type === "ghost";
 
   return (
     <>
@@ -800,8 +783,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
             <>
               <sphereGeometry args={[1, 16, 16]} />
               <meshBasicMaterial
-                ref={projectileMaterial}
-                color={currentEffectConfig.color}
+                color={effectConfig.color}
                 toneMapped={false}
               />
             </>
@@ -810,9 +792,8 @@ function CombatEffect({ players, battleEvent, aliens }) {
             <>
               <octahedronGeometry args={[0.8, 0]} />
               <meshStandardMaterial
-                ref={projectileMaterial}
-                color={currentEffectConfig.color}
-                emissive={currentEffectConfig.color}
+                color={effectConfig.color}
+                emissive={effectConfig.color}
                 emissiveIntensity={1.5}
                 metalness={0.3}
                 roughness={0.4}
@@ -823,8 +804,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
             <>
               <capsuleGeometry args={[0.3, 1.5, 8, 16]} />
               <meshBasicMaterial
-                ref={projectileMaterial}
-                color={currentEffectConfig.color}
+                color={effectConfig.color}
                 transparent
                 opacity={0.8}
                 toneMapped={false}
@@ -835,8 +815,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
             <>
               <torusGeometry args={[0.6, 0.15, 8, 32]} />
               <meshBasicMaterial
-                ref={projectileMaterial}
-                color={currentEffectConfig.color}
+                color={effectConfig.color}
                 transparent
                 opacity={0.7}
                 side={DoubleSide}
@@ -848,8 +827,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
             <>
               <sphereGeometry args={[1, 16, 16]} />
               <meshBasicMaterial
-                ref={projectileMaterial}
-                color={currentEffectConfig.color}
+                color={effectConfig.color}
                 toneMapped={false}
               />
             </>
@@ -858,7 +836,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
 
         <pointLight
           ref={projectileLight}
-          color={currentEffectConfig.color}
+          color={effectConfig.color}
           intensity={0}
           distance={5}
         />
@@ -873,7 +851,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
         <ringGeometry args={[0.45, 0.62, 64]} />
         <meshBasicMaterial
           ref={shockwaveMaterial}
-          color={currentEffectConfig.color}
+          color={effectConfig.color}
           transparent
           opacity={0}
           depthWrite={false}
@@ -890,7 +868,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
         <ringGeometry args={[0.45, 0.62, 64]} />
         <meshBasicMaterial
           ref={impactMaterial}
-          color={currentEffectConfig.color}
+          color={effectConfig.color}
           transparent
           opacity={0}
           depthWrite={false}
@@ -902,7 +880,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
         <sphereGeometry args={[0.55, 24, 24]} />
         <meshBasicMaterial
           ref={flashMaterial}
-          color={currentEffectConfig.color}
+          color={effectConfig.color}
           transparent
           opacity={0}
           depthWrite={false}
@@ -914,7 +892,7 @@ function CombatEffect({ players, battleEvent, aliens }) {
         <torusGeometry args={[0.7, 0.055, 12, 64]} />
         <meshBasicMaterial
           ref={burstRingMaterial}
-          color={currentEffectConfig.color}
+          color={effectConfig.color}
           transparent
           opacity={0}
           depthWrite={false}
@@ -922,12 +900,12 @@ function CombatEffect({ players, battleEvent, aliens }) {
         />
       </mesh>
 
-      {/* Attack particles */}
+      {/* Attack particles: a new burst starts for every attack */}
       <AttackParticles
-        active={particlesActive.current}
-        count={particlesCount.current}
-        color={particlesColor.current}
-        position={particlesPosition.current}
+        burstId={battleEvent?.sequence}
+        count={particleCount}
+        color={effectConfig.particleColor}
+        position={[attackerSide * 1.95, 1.05, 0.45]}
         size={0.12}
         speed={1.5}
         spread={1.2}
