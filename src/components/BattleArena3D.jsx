@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   AdditiveBlending,
   BufferAttribute,
@@ -321,7 +321,7 @@ function FighterModel({ alien, side, playerId, battleEvent }){
   useFrame((state) => {
     if (!group.current) return;
 
-    const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+    const time = state.clock.elapsedTime;
 
     if (
       battleEvent?.sequence &&
@@ -1005,7 +1005,7 @@ function BattleResult({ winner, myId, onAcknowledge }) {
 
   useFrame((state) => {
     if (group.current) {
-      const time = state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.getElapsedTime ? state.clock.getElapsedTime() : state.clock.elapsedTime;
+      const time = state.clock.elapsedTime;
       group.current.rotation.y = Math.sin(time * 0.3) * 0.05;
       group.current.position.y = Math.sin(time * 1.5) * 0.02;
     }
