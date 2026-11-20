@@ -209,6 +209,12 @@ function App() {
   // go to another alien (the list wraps around)
   const selectAlien = useCallback(
     (index) => {
+      // after pressing ready the alien is locked (the server refuses changes too)
+      if (room && room.status === "waiting" && isReady) {
+        setMultiplayerError("Unready before changing your alien.");
+        return;
+      }
+
       const nextIndex = (index + aliens.length) % aliens.length;
       setSelectedIndex(nextIndex);
       setIsTransformed(false);
@@ -218,7 +224,7 @@ function App() {
         sendAlienSelection(aliens[nextIndex].name);
       }
     },
-    [room]
+    [room, isReady]
   );
 
   // arrow keys change the alien
