@@ -9,11 +9,13 @@ const {
   normalizeRoomCode,
   isAllowedAlien,
   allowEvent,
+  parseAlienChoice,
 } = require("./security");
 
 const { getAlienMoves, getCombatMove, ENERGY_CONFIG, canAffordMove, spendEnergy, regenerateEnergy } = require("./combat");
 
 const app = express();
+app.disable("x-powered-by");
 const server = http.createServer(app);
 
 const PORT = Number(process.env.PORT) || 3001;
@@ -39,6 +41,8 @@ app.use(cors({ origin: checkOrigin }));
 app.use(express.json({ limit: "10kb" }));
 
 const io = new Server(server, {
+  // Game events are small JSON objects, so reject oversized messages.
+  maxHttpBufferSize: 10 * 1024,
   cors: {
     origin: checkOrigin,
     methods: ["GET", "POST"],
@@ -120,6 +124,15 @@ io.on("connection", (socket) => {
       });
     }
 
+    const alien = parseAlienChoice(data.alien);
+
+    if (!alien) {
+      return acknowledge(callback, {
+        success: false,
+        message: "Choose a valid alien before creating a room.",
+      });
+    }
+
     let code;
 
     try {
@@ -138,7 +151,7 @@ io.on("connection", (socket) => {
           id: socket.id,
           name: playerName,
           ready: false,
-          alien: isAllowedAlien(data.alien) ? data.alien : "Heatblast",
+          alien,
           health: 100,
           energy: ENERGY_CONFIG.START,
         },
@@ -192,6 +205,15 @@ io.on("connection", (socket) => {
       });
     }
 
+    const alien = parseAlienChoice(data.alien);
+
+    if (!alien) {
+      return acknowledge(callback, {
+        success: false,
+        message: "Choose a valid alien before joining a room.",
+      });
+    }
+
     const room = rooms.get(roomCode);
 
     if (!room) {
@@ -219,7 +241,7 @@ io.on("connection", (socket) => {
       id: socket.id,
       name: playerName,
       ready: false,
-      alien: isAllowedAlien(data.alien) ? data.alien : "Heatblast",
+      alien,
       health: 100,
       energy: ENERGY_CONFIG.START,
     });
@@ -237,18 +259,37 @@ io.on("connection", (socket) => {
     broadcastRoom(room);
   });
 
-  socket.on("set-ready", (payload) => {
-    if (!allowEvent(socket, "set-ready", 10, 5000)) return;
+  socket.on("set-ready", (payload, callback) => {
+    if (!allowEvent(socket, "set-ready", 10, 5000)) {
+      return rejectRateLimit(socket, "set-ready", callback);
+    }
 
     const data = payload && typeof payload === "object" ? payload : {};
 
-    if (typeof data.ready !== "boolean") return;
+    if (typeof data.ready !== "boolean") {
+      return acknowledge(callback, {
+        success: false,
+        message: "Invalid ready state.",
+      });
+    }
 
     const room = rooms.get(socket.data.roomCode);
-    if (!room || room.status !== "waiting") return;
+
+    if (!room || room.status !== "waiting") {
+      return acknowledge(callback, {
+        success: false,
+        message: "You can only ready up while the room is waiting.",
+      });
+    }
 
     const player = room.players.find((item) => item.id === socket.id);
-    if (!player) return;
+
+    if (!player) {
+      return acknowledge(callback, {
+        success: false,
+        message: "You are not in this room.",
+      });
+    }
 
     player.ready = data.ready;
 
@@ -266,23 +307,51 @@ io.on("connection", (socket) => {
     }
 
     broadcastRoom(room);
+    acknowledge(callback, { success: true });
   });
 
-  socket.on("select-alien", (payload) => {
-    if (!allowEvent(socket, "select-alien", 12, 5000)) return;
+  socket.on("select-alien", (payload, callback) => {
+    if (!allowEvent(socket, "select-alien", 12, 5000)) {
+      return rejectRateLimit(socket, "select-alien", callback);
+    }
 
     const data = payload && typeof payload === "object" ? payload : {};
 
-    if (!isAllowedAlien(data.alien)) return;
+    if (!isAllowedAlien(data.alien)) {
+      return acknowledge(callback, {
+        success: false,
+        message: "Choose a valid alien.",
+      });
+    }
 
     const room = rooms.get(socket.data.roomCode);
-    if (!room || room.status !== "waiting") return;
+
+    if (!room || room.status !== "waiting") {
+      return acknowledge(callback, {
+        success: false,
+        message: "Aliens can only be changed before the battle starts.",
+      });
+    }
 
     const player = room.players.find((item) => item.id === socket.id);
-    if (!player) return;
+
+    if (!player) {
+      return acknowledge(callback, {
+        success: false,
+        message: "You are not in this room.",
+      });
+    }
+
+    if (player.ready) {
+      return acknowledge(callback, {
+        success: false,
+        message: "Unready before changing your alien.",
+      });
+    }
 
     player.alien = data.alien;
     broadcastRoom(room);
+    acknowledge(callback, { success: true });
   });
 
   socket.on("attack", (payload, callback) => {
@@ -401,8 +470,9 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("leave-room", () => {
+  socket.on("leave-room", (callback) => {
     leaveRoom(socket);
+    acknowledge(callback, { success: true });
   });
 
   socket.on("disconnect", () => {

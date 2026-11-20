@@ -96,10 +96,21 @@ function allowEvent(socket, eventName, limit, windowMs, now = Date.now()) {
   return true;
 }
 
+const DEFAULT_ALIEN = "Heatblast";
+
+// Returns the requested alien, the default when none was sent,
+// or null when the value is invalid.
+function parseAlienChoice(value) {
+  if (value === undefined || value === null) return DEFAULT_ALIEN;
+
+  return isAllowedAlien(value) ? value : null;
+}
+
 module.exports = {
   createRoomCode,
   normalizePlayerName,
   normalizeRoomCode,
   isAllowedAlien,
+  parseAlienChoice,
   allowEvent,
 };
