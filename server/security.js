@@ -34,6 +34,10 @@ function createRoomCode(existingRooms, maxAttempts = 50) {
   throw new Error("Unable to allocate a unique room code.");
 }
 
+// Characters that cannot be seen or that flip the text direction.
+// ("\u200D", used inside some emoji, is still allowed.)
+const INVISIBLE_CHARACTERS = /[\u0080-\u009F\u200B\u200C\u200E\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/;
+
 function normalizePlayerName(value) {
   if (typeof value !== "string") return null;
 
@@ -42,6 +46,7 @@ function normalizePlayerName(value) {
   if (
     name.length === 0 ||
     name.length > 20 ||
+    INVISIBLE_CHARACTERS.test(name) ||
     Array.from(name).some((character) => {
       const code = character.charCodeAt(0);
       return code <= 31 || code === 127;
