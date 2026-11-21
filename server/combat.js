@@ -101,7 +101,8 @@ const combatMoves = Object.freeze(
 function getAlienMoves(alienName) {
   if (typeof alienName !== "string") return [];
 
-  return combatMoves[alienName] || [];
+  // only real alien names count (not names such as "constructor")
+  return Object.hasOwn(combatMoves, alienName) ? combatMoves[alienName] : [];
 }
 
 function getCombatMove(alienName, moveId) {
