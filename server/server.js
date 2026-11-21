@@ -20,6 +20,10 @@ const server = http.createServer(app);
 
 const PORT = Number(process.env.PORT) || 3001;
 
+// Limits that stop the server from being filled up.
+const MAX_ROOMS = Number(process.env.MAX_ROOMS) || 200;
+const MAX_CONNECTIONS = Number(process.env.MAX_CONNECTIONS) || 500;
+
 const allowedOrigins = (
   process.env.CLIENT_ORIGINS || "http://localhost:5173"
 )
@@ -52,11 +56,19 @@ const io = new Server(server, {
   allowRequest: (request, callback) => {
     const origin = request.headers.origin;
 
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+    if (origin && !allowedOrigins.includes(origin)) {
+      return callback("Origin not allowed", false);
     }
 
-    return callback("Origin not allowed", false);
+    // Refuse brand new connections when the server is full.
+    // Requests that belong to an existing session carry a "sid" value.
+    const isExistingSession = new URL(request.url, "http://localhost").searchParams.has("sid");
+
+    if (!isExistingSession && io.engine.clientsCount >= MAX_CONNECTIONS) {
+      return callback("Server is busy", false);
+    }
+
+    return callback(null, true);
   },
 });
 
@@ -75,6 +87,26 @@ function rejectRateLimit(socket, eventName, callback) {
   });
 
   console.warn(`Rate limit reached for ${eventName}`);
+}
+
+// Registers one socket event. If the handler throws an unexpected error,
+// the error is logged and the player gets a safe message,
+// instead of the whole server crashing.
+function handleEvent(socket, eventName, handler) {
+  socket.on(eventName, (...args) => {
+    try {
+      handler(...args);
+    } catch (error) {
+      console.error(`Error in ${eventName}:`, error.message);
+
+      const callback = args.find((arg) => typeof arg === "function");
+
+      acknowledge(callback, {
+        success: false,
+        message: "Something went wrong. Please try again.",
+      });
+    }
+  });
 }
 
 function getPublicRoom(room) {
@@ -101,7 +133,7 @@ function broadcastRoom(room) {
 io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
 
-  socket.on("create-room", (payload, callback) => {
+  handleEvent(socket, "create-room", (payload, callback) => {
     if (!allowEvent(socket, "create-room", 3, 60000)) {
       return rejectRateLimit(socket, "create-room", callback);
     }
@@ -130,6 +162,13 @@ io.on("connection", (socket) => {
       return acknowledge(callback, {
         success: false,
         message: "Choose a valid alien before creating a room.",
+      });
+    }
+
+    if (rooms.size >= MAX_ROOMS) {
+      return acknowledge(callback, {
+        success: false,
+        message: "The server is busy right now. Please try again in a few minutes.",
       });
     }
 
@@ -174,7 +213,7 @@ io.on("connection", (socket) => {
     broadcastRoom(room);
   });
 
-  socket.on("join-room", (payload, callback) => {
+  handleEvent(socket, "join-room", (payload, callback) => {
     if (!allowEvent(socket, "join-room", 6, 60000)) {
       return rejectRateLimit(socket, "join-room", callback);
     }
@@ -259,7 +298,7 @@ io.on("connection", (socket) => {
     broadcastRoom(room);
   });
 
-  socket.on("set-ready", (payload, callback) => {
+  handleEvent(socket, "set-ready", (payload, callback) => {
     if (!allowEvent(socket, "set-ready", 10, 5000)) {
       return rejectRateLimit(socket, "set-ready", callback);
     }
@@ -310,7 +349,7 @@ io.on("connection", (socket) => {
     acknowledge(callback, { success: true });
   });
 
-  socket.on("select-alien", (payload, callback) => {
+  handleEvent(socket, "select-alien", (payload, callback) => {
     if (!allowEvent(socket, "select-alien", 12, 5000)) {
       return rejectRateLimit(socket, "select-alien", callback);
     }
@@ -354,7 +393,7 @@ io.on("connection", (socket) => {
     acknowledge(callback, { success: true });
   });
 
-  socket.on("attack", (payload, callback) => {
+  handleEvent(socket, "attack", (payload, callback) => {
     const data = payload && typeof payload === "object" ? payload : {};
     const room = rooms.get(socket.data.roomCode);
 
@@ -470,12 +509,12 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("leave-room", (callback) => {
+  handleEvent(socket, "leave-room", (callback) => {
     leaveRoom(socket);
     acknowledge(callback, { success: true });
   });
 
-  socket.on("disconnect", () => {
+  handleEvent(socket, "disconnect", () => {
     console.log("Player disconnected:", socket.id);
     leaveRoom(socket);
   });
